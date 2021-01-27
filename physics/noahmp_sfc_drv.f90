@@ -279,6 +279,16 @@
   integer             ,                     intent(out)   :: errflg
 
 !
+!  ---  some new options, hard code for now
+!
+
+  integer    :: iopt_rsf  = 4 ! option for surface resistance
+  integer    :: iopt_soil = 1 ! option for soil parameter treatment
+  integer    :: iopt_pedo = 1 ! option for pedotransfer function
+  integer    :: iopt_crop = 0 ! option for crop model
+  integer    :: iopt_gla  = 2 ! option for glacier treatment
+
+!
 !  ---  guess iteration fields - target for removal
 !
 
@@ -488,7 +498,7 @@
 !  ---  local variable
 !
 
-  integer :: soil_category
+  integer :: soil_category(nsoil)
   integer :: slope_category
   integer :: soil_color_category
 
@@ -617,7 +627,7 @@
       max_vegetation_frac   = shdmax(i)
       vegetation_category   = vegtype(i)
       surface_type          = 1
-      crop_type             = -9999
+      crop_type             = 0
       eq_soil_water_vol     = smoiseq(i,:) ! only need for run=5
       temperature_forcing   = t1(i) 
       air_pressure_surface  = ps(i)
@@ -723,11 +733,12 @@
       soil_color_category = 4
 
       call transfer_mp_parameters(vegetation_category,soil_category, &
-                        slope_category,soil_color_category,parameters)
+                        slope_category,soil_color_category,crop_type,parameters)
 
       call noahmp_options(idveg ,iopt_crs, iopt_btr , iopt_run, iopt_sfc,  &
                                  iopt_frz, iopt_inf , iopt_rad, iopt_alb,  &
-                                 iopt_snf, iopt_tbot, iopt_stc)
+                                 iopt_snf, iopt_tbot, iopt_stc,            &
+			         iopt_rsf, iopt_soil, iopt_pedo, iopt_crop )
 
       if ( vegetation_category == isice_table )  then
 
@@ -740,9 +751,7 @@
         ice_flag = -1
         temperature_soil_bot = min(temperature_soil_bot,263.15)
 
-        call noahmp_options_glacier(idveg, iopt_crs, iopt_btr , iopt_run, &
-                                 iopt_sfc, iopt_frz, iopt_inf , iopt_rad, &
-                                 iopt_alb, iopt_snf, iopt_tbot, iopt_stc )
+        call noahmp_options_glacier(iopt_alb, iopt_snf, iopt_tbot, iopt_stc, iopt_gla )
 
         call noahmp_glacier (                                                                      &
           i_location           ,1                    ,cosine_zenith        ,nsnow                , &
@@ -814,7 +823,7 @@
           timestep              ,spatial_scale         ,atmosphere_thickness  , &
           soil_levels           ,soil_interface_depth  ,max_snow_levels       , &
           vegetation_frac       ,max_vegetation_frac   ,vegetation_category   , &
-          ice_flag              ,surface_type          , &!crop_type             ,
+          ice_flag              ,surface_type          ,crop_type             , &
           eq_soil_water_vol     ,temperature_forcing   ,air_pressure_forcing  , &
           air_pressure_surface  ,uwind_forcing         ,vwind_forcing         , &
           spec_humidity_forcing ,cloud_water_forcing   ,sw_radiation_forcing  , &
@@ -828,7 +837,7 @@
           temperature_canopy_air,vapor_pres_canopy_air ,canopy_wet_fraction   , &
           canopy_liquid         ,canopy_ice            ,temperature_leaf      , &
           temperature_ground    ,spec_humidity_surface ,snowfall              , &
-          snow_levels           ,interface_depth       , &!rainfall              ,
+          rainfall              ,snow_levels           ,interface_depth       , &
           snow_depth            ,snow_water_equiv      ,snow_level_ice        , &
           snow_level_liquid     ,depth_water_table     ,aquifer_water         , &
           saturated_water       ,                                               &
@@ -836,7 +845,7 @@
           stem_carbon           ,wood_carbon           ,soil_carbon_stable    , &
           soil_carbon_fast      ,leaf_area_index       ,stem_area_index       , &
           cm_noahmp             ,ch_noahmp             ,snow_age              , &
-!          grain_carbon          ,growing_deg_days      ,plant_growth_stage    , &
+          grain_carbon          ,growing_deg_days      ,plant_growth_stage    , &
           soil_moisture_wtd     ,deep_recharge         ,recharge              , &
           z0_total              ,sw_absorbed_total     ,sw_reflected_total    , &
           lw_absorbed_total     ,sensible_heat_total   ,ground_heat_total     , &
@@ -851,7 +860,7 @@
           albedo_total          ,snowmelt_out          ,snowmelt_shallow      , &
           snowmelt_shallow_1    ,snowmelt_shallow_2    ,rs_sunlit             , &
           rs_shaded             ,albedo_direct         ,albedo_diffuse        , &
-          canopy_gap_fraction   , &!albedo_direct_snow ,albedo_diffuse_snow   ,
+          albedo_direct_snow    ,albedo_diffuse_snow   ,canopy_gap_fraction   , &
           incanopy_gap_fraction ,ch_vegetated          ,ch_bare_ground        , &
           emissivity_total      ,sensible_heat_grd_veg ,sensible_heat_leaf    , &
           sensible_heat_grd_bar ,latent_heat_grd_veg   ,latent_heat_grd_bare  , &
@@ -860,9 +869,9 @@
           latent_heat_leaf      ,ch_leaf               ,ch_below_canopy       , &
           ch_vegetated_2m       ,ch_bare_ground_2m     ,precip_frozen_frac    , &
           precip_adv_heat_veg   ,precip_adv_heat_grd_v ,precip_adv_heat_grd_b , &
-          precip_adv_heat_total ,snow_sublimation      ,&!lai_sunlit            , &
+          precip_adv_heat_total ,snow_sublimation      ,lai_sunlit            , &
 #ifdef CCPP
-!          lai_shaded            ,leaf_air_resistance   ,                        &
+          lai_shaded            ,leaf_air_resistance   ,                        &
           errmsg                ,errflg                )
 #else
           lai_shaded            ,leaf_air_resistance   )
@@ -964,9 +973,9 @@
                          0.6*soil_moisture_vol(3) + &        ! clean up and use depths above
                          1.0*soil_moisture_vol(4))*1000.0    ! unit conversion from m to kg m-2
 
-      wet1   (i) = soil_moisture_vol(1) /  smcmax_table(soil_category)
-      smcwlt2(i) = smcdry_table(soil_category)   !!!change to wilt?
-      smcref2(i) = smcref_table(soil_category)
+      wet1   (i) = soil_moisture_vol(1) /  smcmax_table(soil_category(1))
+      smcwlt2(i) = smcdry_table(soil_category(1))   !!!change to wilt?
+      smcref2(i) = smcref_table(soil_category(1))
 
 !      
 !  --- change units for output
@@ -1079,7 +1088,7 @@
 !! \brief This subroutine fills in a derived data type of type noahmp_parameters with data
 !! from the module \ref noahmp_tables.
       subroutine transfer_mp_parameters (vegtype,soiltype,slopetype,    &
-     &                                          soilcolor,parameters)
+                                       soilcolor,croptype,parameters)
      
         use noahmp_tables
         use module_sf_noahmplsm
@@ -1087,9 +1096,10 @@
         implicit none
       
         integer, intent(in)    :: vegtype
-        integer, intent(in)    :: soiltype
+        integer, intent(in)    :: soiltype(4)
         integer, intent(in)    :: slopetype
         integer, intent(in)    :: soilcolor
+        integer, intent(in)    :: croptype
           
         type (noahmp_parameters), intent(out) :: parameters
           
@@ -1097,10 +1107,12 @@
         real    :: refkdt
         real    :: frzk
         real    :: frzfact
+        integer :: isoil
       
         parameters%iswater   =  iswater_table
         parameters%isbarren  =  isbarren_table
         parameters%isice     =  isice_table
+        parameters%iscrop    =  iscrop_table
         parameters%eblforest =  eblforest_table
       
 !-----------------------------------------------------------------------&
@@ -1183,33 +1195,96 @@
          parameters%eg        = eg_table
       
 !------------------------------------------------------------------------------------------!
+! Transfer crop parameters
+!------------------------------------------------------------------------------------------!
+
+      if(croptype > 0) then
+        parameters%pltday    =    pltday_table(croptype)    ! planting date
+        parameters%hsday     =     hsday_table(croptype)    ! harvest date
+        parameters%plantpop  =  plantpop_table(croptype)    ! plant density [per ha] - used?
+        parameters%irri      =      irri_table(croptype)    ! irrigation strategy 0= non-irrigation 1=irrigation (no water-stress)
+        parameters%gddtbase  =  gddtbase_table(croptype)    ! base temperature for gdd accumulation [c]
+        parameters%gddtcut   =   gddtcut_table(croptype)    ! upper temperature for gdd accumulation [c]
+        parameters%gdds1     =     gdds1_table(croptype)    ! gdd from seeding to emergence
+        parameters%gdds2     =     gdds2_table(croptype)    ! gdd from seeding to initial vegetative 
+        parameters%gdds3     =     gdds3_table(croptype)    ! gdd from seeding to post vegetative 
+        parameters%gdds4     =     gdds4_table(croptype)    ! gdd from seeding to intial reproductive
+        parameters%gdds5     =     gdds5_table(croptype)    ! gdd from seeding to pysical maturity 
+        parameters%c3c4      =      c3c4_table(croptype)    ! photosynthetic pathway:  1. = c3 2. = c4
+        parameters%aref      =      aref_table(croptype)    ! reference maximum co2 assimulation rate 
+        parameters%psnrf     =     psnrf_table(croptype)    ! co2 assimulation reduction factor(0-1) (e.g.pests, weeds)
+        parameters%i2par     =     i2par_table(croptype)    ! fraction of incoming solar radiation to photosynthetically active radiation
+        parameters%tassim0   =   tassim0_table(croptype)    ! minimum temperature for co2 assimulation [c]
+        parameters%tassim1   =   tassim1_table(croptype)    ! co2 assimulation linearly increasing until temperature reaches t1 [c]
+        parameters%tassim2   =   tassim2_table(croptype)    ! co2 assmilation rate remain at aref until temperature reaches t2 [c]
+        parameters%k         =         k_table(croptype)    ! light extinction coefficient
+        parameters%epsi      =      epsi_table(croptype)    ! initial light use efficiency
+        parameters%q10mr     =     q10mr_table(croptype)    ! q10 for maintainance respiration
+        parameters%foln_mx   =   foln_mx_table(croptype)    ! foliage nitrogen concentration when f(n)=1 (%)
+        parameters%lefreez   =   lefreez_table(croptype)    ! characteristic t for leaf freezing [k]
+        parameters%dile_fc   =   dile_fc_table(croptype,:)  ! coeficient for temperature leaf stress death [1/s]
+        parameters%dile_fw   =   dile_fw_table(croptype,:)  ! coeficient for water leaf stress death [1/s]
+        parameters%fra_gr    =    fra_gr_table(croptype)    ! fraction of growth respiration
+        parameters%lf_ovrc   =   lf_ovrc_table(croptype,:)  ! fraction of leaf turnover  [1/s]
+        parameters%st_ovrc   =   st_ovrc_table(croptype,:)  ! fraction of stem turnover  [1/s]
+        parameters%rt_ovrc   =   rt_ovrc_table(croptype,:)  ! fraction of root tunrover  [1/s]
+        parameters%lfmr25    =    lfmr25_table(croptype)    ! leaf maintenance respiration at 25c [umol co2/m**2  /s]
+        parameters%stmr25    =    stmr25_table(croptype)    ! stem maintenance respiration at 25c [umol co2/kg bio/s]
+        parameters%rtmr25    =    rtmr25_table(croptype)    ! root maintenance respiration at 25c [umol co2/kg bio/s]
+        parameters%grainmr25 = grainmr25_table(croptype)    ! grain maintenance respiration at 25c [umol co2/kg bio/s]
+        parameters%lfpt      =      lfpt_table(croptype,:)  ! fraction of carbohydrate flux to leaf
+        parameters%stpt      =      stpt_table(croptype,:)  ! fraction of carbohydrate flux to stem
+        parameters%rtpt      =      rtpt_table(croptype,:)  ! fraction of carbohydrate flux to root
+        parameters%grainpt   =   grainpt_table(croptype,:)  ! fraction of carbohydrate flux to grain
+        parameters%bio2lai   =   bio2lai_table(croptype)    ! leaf are per living leaf biomass [m^2/kg]
+      end if
+
+!------------------------------------------------------------------------------------------!
 ! transfer global parameters
 !------------------------------------------------------------------------------------------!
       
-         parameters%co2       =    co2_table
-         parameters%o2        =     o2_table
-         parameters%timean    = timean_table
-         parameters%fsatmx    = fsatmx_table
-         parameters%z0sno     =  z0sno_table
-         parameters%ssi       =    ssi_table
-         parameters%swemx     =  swemx_table
-         parameters%snow_emis = snow_emis_table
+         parameters%co2          =          co2_table
+         parameters%o2           =           o2_table
+         parameters%timean       =       timean_table
+         parameters%fsatmx       =       fsatmx_table
+         parameters%z0sno        =        z0sno_table
+         parameters%ssi          =          ssi_table
+         parameters%swemx        =        swemx_table
+         parameters%tau0         =         tau0_table
+         parameters%grain_growth = grain_growth_table
+         parameters%extra_growth = extra_growth_table
+         parameters%dirt_soot    =    dirt_soot_table
+         parameters%bats_cosz    =    bats_cosz_table
+         parameters%bats_vis_new = bats_vis_new_table
+         parameters%bats_nir_new = bats_nir_new_table
+         parameters%bats_vis_age = bats_vis_age_table
+         parameters%bats_nir_age = bats_nir_age_table
+         parameters%bats_vis_dir = bats_vis_dir_table
+         parameters%bats_nir_dir = bats_nir_dir_table
+         parameters%rsurf_snow   =   rsurf_snow_table
+         parameters%rsurf_exp    =    rsurf_exp_table
+         parameters%snow_emis    =    snow_emis_table
       
 ! ----------------------------------------------------------------------
 !  transfer soil parameters
 ! ----------------------------------------------------------------------
       
-          parameters%bexp   = bexp_table   (soiltype)
-          parameters%dksat  = dksat_table  (soiltype)
-          parameters%dwsat  = dwsat_table  (soiltype)
-          parameters%f1     = f1_table     (soiltype)
-          parameters%psisat = psisat_table (soiltype)
-          parameters%quartz = quartz_table (soiltype)
-          parameters%smcdry = smcdry_table (soiltype)
-          parameters%smcmax = smcmax_table (soiltype)
-          parameters%smcref = smcref_table (soiltype)
-          parameters%smcwlt = smcwlt_table (soiltype)
-      
+      do isoil = 1, size(soiltype)
+        parameters%bexp(isoil)   = bexp_table   (soiltype(isoil))
+        parameters%dksat(isoil)  = dksat_table  (soiltype(isoil))
+        parameters%dwsat(isoil)  = dwsat_table  (soiltype(isoil))
+        parameters%psisat(isoil) = psisat_table (soiltype(isoil))
+        parameters%quartz(isoil) = quartz_table (soiltype(isoil))
+        parameters%smcdry(isoil) = smcdry_table (soiltype(isoil))
+        parameters%smcmax(isoil) = smcmax_table (soiltype(isoil))
+        parameters%smcref(isoil) = smcref_table (soiltype(isoil))
+        parameters%smcwlt(isoil) = smcwlt_table (soiltype(isoil))
+      end do
+          
+      parameters%f1     = f1_table(soiltype(1))
+      parameters%refdk  = refdk_table
+      parameters%refkdt = refkdt_table
+
 ! ----------------------------------------------------------------------
 ! transfer genparm parameters
 ! ----------------------------------------------------------------------
@@ -1218,9 +1293,7 @@
           parameters%czil   = czil_table
       
           frzk   = frzk_table
-          refdk  = refdk_table
-          refkdt = refkdt_table
-          parameters%kdt    = refkdt * parameters%dksat / refdk
+          parameters%kdt    = parameters%refkdt * parameters%dksat(1) / parameters%refdk
           parameters%slope  = slope_table(slopetype)
       
           if(parameters%urban_flag)then  ! hardcoding some urban parameters for soil
@@ -1234,13 +1307,130 @@
       ! adjust frzk parameter to actual soil type: frzk * frzfact
       
 !-----------------------------------------------------------------------&
-          if(soiltype /= 14) then
-            frzfact = (parameters%smcmax / parameters%smcref)           &
-     &      * (0.412 / 0.468)
+          if(soiltype(1) /= 14) then
+            frzfact = (parameters%smcmax(1) / parameters%smcref(1)) * (0.412 / 0.468)
             parameters%frzx = frzk * frzfact
           end if
       
        end subroutine transfer_mp_parameters
+
+!> \ingroup NoahMP_LSM
+!! \brief This subroutine uses a pedotransfer method to calculate soil properties.
+SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
+
+  use module_sf_noahmplsm
+  use noahmp_tables
+        
+  implicit none
+        
+  integer,                    intent(in   ) :: nsoil     ! number of soil layers
+  real, dimension( 1:nsoil ), intent(inout) :: sand
+  real, dimension( 1:nsoil ), intent(inout) :: clay
+  real, dimension( 1:nsoil ), intent(inout) :: orgm
+    
+  real, dimension( 1:nsoil ) :: theta_1500t
+  real, dimension( 1:nsoil ) :: theta_1500
+  real, dimension( 1:nsoil ) :: theta_33t
+  real, dimension( 1:nsoil ) :: theta_33
+  real, dimension( 1:nsoil ) :: theta_s33t
+  real, dimension( 1:nsoil ) :: theta_s33
+  real, dimension( 1:nsoil ) :: psi_et
+  real, dimension( 1:nsoil ) :: psi_e
+    
+  type(noahmp_parameters), intent(inout) :: parameters
+  integer :: k
+
+  do k = 1,4
+    if(sand(k) <= 0 .or. clay(k) <= 0) then
+      sand(k) = 0.41
+      clay(k) = 0.18
+    end if
+    if(orgm(k) <= 0 ) orgm(k) = 0.0
+  end do
+        
+  theta_1500t =   sr2006_theta_1500t_a*sand       &
+                + sr2006_theta_1500t_b*clay       &
+                + sr2006_theta_1500t_c*orgm       &
+                + sr2006_theta_1500t_d*sand*orgm  &
+                + sr2006_theta_1500t_e*clay*orgm  &
+                + sr2006_theta_1500t_f*sand*clay  &
+                + sr2006_theta_1500t_g
+
+  theta_1500  =   theta_1500t                      &
+                + sr2006_theta_1500_a*theta_1500t  &
+                + sr2006_theta_1500_b
+
+  theta_33t   =   sr2006_theta_33t_a*sand       &
+                + sr2006_theta_33t_b*clay       &
+                + sr2006_theta_33t_c*orgm       &
+                + sr2006_theta_33t_d*sand*orgm  &
+                + sr2006_theta_33t_e*clay*orgm  &
+                + sr2006_theta_33t_f*sand*clay  &
+                + sr2006_theta_33t_g
+
+  theta_33    =   theta_33t                              &
+                + sr2006_theta_33_a*theta_33t*theta_33t  &
+                + sr2006_theta_33_b*theta_33t            &
+                + sr2006_theta_33_c
+
+  theta_s33t  =   sr2006_theta_s33t_a*sand      &
+                + sr2006_theta_s33t_b*clay      &
+                + sr2006_theta_s33t_c*orgm      &
+                + sr2006_theta_s33t_d*sand*orgm &
+                + sr2006_theta_s33t_e*clay*orgm &
+                + sr2006_theta_s33t_f*sand*clay &
+                + sr2006_theta_s33t_g
+
+  theta_s33   = theta_s33t                       &
+                + sr2006_theta_s33_a*theta_s33t  &
+                + sr2006_theta_s33_b
+
+  psi_et      =   sr2006_psi_et_a*sand           &
+                + sr2006_psi_et_b*clay           &
+                + sr2006_psi_et_c*theta_s33      &
+                + sr2006_psi_et_d*sand*theta_s33 &
+                + sr2006_psi_et_e*clay*theta_s33 &
+                + sr2006_psi_et_f*sand*clay      &
+                + sr2006_psi_et_g
+ 
+  psi_e       =   psi_et                        &
+                + sr2006_psi_e_a*psi_et*psi_et  &
+                + sr2006_psi_e_b*psi_et         &
+                + sr2006_psi_e_c
+    
+  parameters%smcwlt = theta_1500
+  parameters%smcref = theta_33
+  parameters%smcmax =   theta_33    &
+                      + theta_s33            &
+                      + sr2006_smcmax_a*sand &
+                      + sr2006_smcmax_b
+
+  parameters%bexp   = 3.816712826 / (log(theta_33) - log(theta_1500) )
+  parameters%psisat = psi_e
+  parameters%dksat  = 1930.0 * (parameters%smcmax - theta_33) ** (3.0 - 1.0/parameters%bexp)
+  parameters%quartz = sand
+    
+! Units conversion
+    
+  parameters%psisat = max(0.1,parameters%psisat)     ! arbitrarily impose a limit of 0.1kpa
+  parameters%psisat = 0.101997 * parameters%psisat   ! convert kpa to m
+  parameters%dksat  = parameters%dksat / 3600000.0   ! convert mm/h to m/s
+  parameters%dwsat  = parameters%dksat * parameters%psisat *parameters%bexp / parameters%smcmax  ! units should be m*m/s
+  parameters%smcdry = parameters%smcwlt
+  
+! Introducing somewhat arbitrary limits (based on SOILPARM) to prevent bad things
+  
+  parameters%smcmax = max(0.32 ,min(parameters%smcmax,             0.50 ))
+  parameters%smcref = max(0.17 ,min(parameters%smcref,parameters%smcmax ))
+  parameters%smcwlt = max(0.01 ,min(parameters%smcwlt,parameters%smcref ))
+  parameters%smcdry = max(0.01 ,min(parameters%smcdry,parameters%smcref ))
+  parameters%bexp   = max(2.50 ,min(parameters%bexp,               12.0 ))
+  parameters%psisat = max(0.03 ,min(parameters%psisat,             1.00 ))
+  parameters%dksat  = max(5.e-7,min(parameters%dksat,              1.e-5))
+  parameters%dwsat  = max(1.e-6,min(parameters%dwsat,              3.e-5))
+  parameters%quartz = max(0.05 ,min(parameters%quartz,             0.95 ))
+    
+ END SUBROUTINE PEDOTRANSFER_SR2006
 
 !-----------------------------------------------------------------------&
 
