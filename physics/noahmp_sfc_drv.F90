@@ -1,4 +1,4 @@
-!>  \file sfc_noahmp_drv.f
+!>  \file sfc_noahmp_drv.F90
 !!  This file contains the NoahMP land surface scheme driver.
 
 !>\defgroup NoahMP_LSM NoahMP LSM Model
