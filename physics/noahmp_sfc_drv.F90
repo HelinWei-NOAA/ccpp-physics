@@ -1249,6 +1249,7 @@
          parameters%fsatmx       =       fsatmx_table
          parameters%z0sno        =        z0sno_table
          parameters%ssi          =          ssi_table
+         parameters%snow_ret_fac = snow_ret_fac_table
          parameters%swemx        =        swemx_table
          parameters%tau0         =         tau0_table
          parameters%grain_growth = grain_growth_table
