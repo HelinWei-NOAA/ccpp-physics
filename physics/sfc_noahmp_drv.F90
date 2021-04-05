@@ -98,7 +98,7 @@
     ( im, km, itime, ps, u1, v1, t1, q1, soiltyp, vegtype,       &
       sigmaf, dlwflx, dswsfc, snet, delt, tg3, cm, ch,           &
       prsl1, prslki, zf, dry, wind, slopetyp,                    &
-      shdmin, shdmax, snoalb, sfalb, flag_iter, flag_guess,      &
+      shdmin, shdmax, snoalb, sfalb, flag_iter,                  &
       idveg, iopt_crs, iopt_btr, iopt_run, iopt_sfc, iopt_frz,   &
       iopt_inf, iopt_rad, iopt_alb, iopt_snf, iopt_tbot,         &
       iopt_stc, xlatin, xcoszin, iyrlen, julian,                 &
@@ -108,7 +108,7 @@
 
 !  ---  in/outs:
       weasd, snwdph, tskin, tprcp, srflag, smc, stc, slc,        &
-      canopy, trans, tsurf, zorl,                                &
+      canopy, trans, zorl,                                       &
 
 ! --- Noah MP specific
 
@@ -182,7 +182,6 @@
   real(kind=kind_phys), dimension(im)     , intent(in)    :: snoalb     ! upper bound on max albedo over deep snow
   real(kind=kind_phys), dimension(im)     , intent(inout) :: sfalb      ! mean surface albedo [fraction]
   logical             , dimension(im)     , intent(in)    :: flag_iter  !
-  logical             , dimension(im)     , intent(in)    :: flag_guess !
   integer                                 , intent(in)    :: idveg      ! option for dynamic vegetation
   integer                                 , intent(in)    :: iopt_crs   ! option for canopy stomatal resistance
   integer                                 , intent(in)    :: iopt_btr   ! option for soil moisture factor for stomatal resistance
@@ -223,7 +222,6 @@
   real(kind=kind_phys), dimension(im,km)  , intent(inout) :: slc        ! liquid soil moisture [m3/m3]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: canopy     ! canopy moisture content [mm]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: trans      ! total plant transpiration [m/s]
-  real(kind=kind_phys), dimension(im)     , intent(inout) :: tsurf      ! surface skin temperature [after iteration]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: zorl       ! surface roughness [cm]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: snowxy     ! actual no. of snow layers
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tvxy       ! vegetation leaf temperature [K]
@@ -298,52 +296,6 @@
   integer    :: iopt_crop = 0 ! option for crop model
   integer    :: iopt_gla  = 2 ! option for glacier treatment
 
-!
-!  ---  guess iteration fields - target for removal
-!
-
-  real(kind=kind_phys), dimension(im)       :: weasd_old
-  real(kind=kind_phys), dimension(im)       :: snwdph_old
-  real(kind=kind_phys), dimension(im)       :: tskin_old
-  real(kind=kind_phys), dimension(im)       :: canopy_old
-  real(kind=kind_phys), dimension(im)       :: tprcp_old
-  real(kind=kind_phys), dimension(im)       :: srflag_old
-  real(kind=kind_phys), dimension(im)       :: snow_old
-  real(kind=kind_phys), dimension(im)       :: tv_old
-  real(kind=kind_phys), dimension(im)       :: tg_old
-  real(kind=kind_phys), dimension(im)       :: canice_old
-  real(kind=kind_phys), dimension(im)       :: canliq_old
-  real(kind=kind_phys), dimension(im)       :: eah_old
-  real(kind=kind_phys), dimension(im)       :: tah_old
-  real(kind=kind_phys), dimension(im)       :: fwet_old
-  real(kind=kind_phys), dimension(im)       :: sneqvo_old
-  real(kind=kind_phys), dimension(im)       :: albold_old
-  real(kind=kind_phys), dimension(im)       :: qsnow_old
-  real(kind=kind_phys), dimension(im)       :: wslake_old
-  real(kind=kind_phys), dimension(im)       :: zwt_old
-  real(kind=kind_phys), dimension(im)       :: wa_old
-  real(kind=kind_phys), dimension(im)       :: wt_old
-  real(kind=kind_phys), dimension(im)       :: lfmass_old
-  real(kind=kind_phys), dimension(im)       :: rtmass_old
-  real(kind=kind_phys), dimension(im)       :: stmass_old
-  real(kind=kind_phys), dimension(im)       :: wood_old
-  real(kind=kind_phys), dimension(im)       :: stblcp_old
-  real(kind=kind_phys), dimension(im)       :: fastcp_old
-  real(kind=kind_phys), dimension(im)       :: xlai_old
-  real(kind=kind_phys), dimension(im)       :: xsai_old
-  real(kind=kind_phys), dimension(im)       :: tauss_old
-  real(kind=kind_phys), dimension(im)       :: smcwtd_old
-  real(kind=kind_phys), dimension(im)       :: rech_old
-  real(kind=kind_phys), dimension(im)       :: deeprech_old
-  real(kind=kind_phys), dimension(im,   km) :: smc_old
-  real(kind=kind_phys), dimension(im,   km) :: stc_old
-  real(kind=kind_phys), dimension(im,   km) :: slc_old
-  real(kind=kind_phys), dimension(im,   km) :: smoiseq_old
-  real(kind=kind_phys), dimension(im,-2: 0) :: tsno_old  
-  real(kind=kind_phys), dimension(im,-2: 0) :: snice_old
-  real(kind=kind_phys), dimension(im,-2: 0) :: snliq_old 
-  real(kind=kind_phys), dimension(im,-2:km) :: zsnso_old
-  real(kind=kind_phys), dimension(im,-2:km) :: tsnso_old
 
 !
 !  ---  local inputs to noah-mp and glacier subroutines; listed in order in noah-mp call
@@ -543,67 +495,6 @@
   errmsg = ''
   errflg = 0
 
-!
-!  --- save land-related prognostic fields for guess run  TARGET FOR REMOVAL
-!
-  do i = 1, im
-    if (dry(i) .and. flag_guess(i)) then
-      weasd_old(i)   = weasd(i)
-      snwdph_old(i)  = snwdph(i)
-      tskin_old(i)   = tskin(i)
-      canopy_old(i)  = canopy(i)
-      tprcp_old(i)   = tprcp(i)
-      srflag_old(i)  = srflag(i)
-      snow_old(i)    = snowxy(i)
-      tv_old(i)      = tvxy(i)
-      tg_old(i)      = tgxy(i)
-      canice_old(i)  = canicexy(i)
-      canliq_old(i)  = canliqxy(i)
-      eah_old(i)     = eahxy(i)
-      tah_old(i)     = tahxy(i)
-      fwet_old(i)    = fwetxy(i)
-      sneqvo_old(i)  = sneqvoxy(i) 
-      albold_old(i)  = alboldxy(i)
-      qsnow_old(i)   = qsnowxy(i)
-      wslake_old(i)  = wslakexy(i)
-      zwt_old(i)     = zwtxy(i)
-      wa_old(i)      = waxy(i)
-      wt_old(i)      = wtxy(i)
-      lfmass_old(i)  = lfmassxy(i)
-      rtmass_old(i)  = rtmassxy(i)
-      stmass_old(i)  = stmassxy(i)
-      wood_old(i)    = woodxy(i)
-      stblcp_old(i)  = stblcpxy(i)
-      fastcp_old(i)  = fastcpxy(i)
-      xlai_old(i)    = xlaixy(i)
-      xsai_old(i)    = xsaixy(i)
-      tauss_old(i)   = taussxy(i)
-      smcwtd_old(i)  = smcwtdxy(i)
-      rech_old(i)    = rechxy(i)
-      deeprech_old(i) = deeprechxy(i)
-
-      do k = 1, km
-        smc_old(i,k)     = smc(i,k)
-        stc_old(i,k)     = stc(i,k)
-        slc_old(i,k)     = slc(i,k)
-        smoiseq_old(i,k) = smoiseq(i,k)
-      end do
-
-      do k = -2, 0
-        tsno_old(i,k)  = tsnoxy(i,k)
-        snice_old(i,k) = snicexy(i,k)
-        snliq_old(i,k) = snliqxy(i,k)
-      end do
-
-      do k = -2, km
-        zsnso_old (i,k) = zsnsoxy(i,k)
-      end do
-
-    end if  ! dry(i) .and. flag_guess(i)
-
-  end do  ! im _old loop
-
-  do i = 1, im
 
     if (flag_iter(i) .and. dry(i)) then
 
@@ -948,7 +839,6 @@
       sncovr1   (i)   = snow_cover_fraction
       qsurf     (i)   = q1(i)  + evap(i) / (con_hvap / con_cp * density * ch(i) * wind(i))     
       tskin     (i)   = temperature_radiative
-      tsurf     (i)   = temperature_radiative
       tvxy      (i)   = temperature_leaf
       tgxy      (i)   = temperature_ground
       tahxy     (i)   = temperature_canopy_air
@@ -1022,69 +912,6 @@
     end if ! flag_iter(i) .and. dry(i)
 
   end do ! im loop
-
-!
-!  --- restore land-related prognostic fields for guess run  TARGET FOR REMOVAL
-!
-
-      do i = 1, im
-        if (dry(i) .and. flag_guess(i)) then
-          weasd(i)      = weasd_old(i)
-          snwdph(i)     = snwdph_old(i)
-          tskin(i)      = tskin_old(i)
-          canopy(i)     = canopy_old(i)
-          tprcp(i)      = tprcp_old(i)
-          srflag(i)     = srflag_old(i)
-          snowxy(i)     = snow_old(i)
-          tvxy(i)       = tv_old(i)
-          tgxy(i)       = tg_old(i)
-          canicexy(i)   = canice_old(i)
-          canliqxy(i)   = canliq_old(i)
-          eahxy(i)      = eah_old(i)
-          tahxy(i)      = tah_old(i)
-          fwetxy(i)     = fwet_old(i)
-          sneqvoxy(i)   = sneqvo_old(i)
-          alboldxy(i)   = albold_old(i)
-          qsnowxy(i)    = qsnow_old(i)
-          wslakexy(i)   = wslake_old(i)
-          zwtxy(i)      = zwt_old(i)
-          waxy(i)       = wa_old(i)
-          wtxy(i)       = wt_old(i)
-          lfmassxy(i)   = lfmass_old(i)
-          rtmassxy(i)   = rtmass_old(i)
-          stmassxy(i)   = stmass_old(i)
-          woodxy(i)     = wood_old(i)
-          stblcpxy(i)   = stblcp_old(i)
-          fastcpxy(i)   = fastcp_old(i)
-          xlaixy(i)     = xlai_old(i)
-          xsaixy(i)     = xsai_old(i)
-          taussxy(i)    = tauss_old(i)
-          smcwtdxy(i)   = smcwtd_old(i)
-          rechxy(i)     = rech_old(i)
-          deeprechxy(i) = deeprech_old(i)
-
-          do k = 1, km
-            smc(i,k)     = smc_old(i,k)
-            stc(i,k)     = stc_old(i,k)
-            slc(i,k)     = slc_old(i,k)
-            smoiseq(i,k) = smoiseq_old(i,k)
-          end do
-
-          do k = -2,0
-            tsnoxy(i,k)  = tsno_old(i,k)
-            snicexy(i,k) = snice_old(i,k)
-            snliqxy(i,k) = snliq_old(i,k)
-          end do
-
-          do k = -2, km
-            zsnsoxy(i,k) =  zsnso_old(i,k)
-          end do
-       
-        else
-            tskin(i) = tsurf(i)    
-
-        end if
-      end do
 
       return
 
