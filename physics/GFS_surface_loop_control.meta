@@ -108,7 +108,6 @@
   type = integer
   intent = in
   optional = F
-
 [iter]
   standard_name = ccpp_loop_counter
   long_name = loop counter for subcycling loops in CCPP

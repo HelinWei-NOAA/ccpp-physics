@@ -496,6 +496,8 @@
   errflg = 0
 
 
+ do i = 1, im
+
     if (flag_iter(i) .and. dry(i)) then
 
 !
