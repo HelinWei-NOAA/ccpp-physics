@@ -108,7 +108,7 @@
 
 !  ---  in/outs:
       weasd, snwdph, tskin, tprcp, srflag, smc, stc, slc,        &
-      canopy, trans, zorl,                                       &
+      canopy, trans, tsurf, zorl,                                &
 
 ! --- Noah MP specific
 
@@ -222,6 +222,7 @@
   real(kind=kind_phys), dimension(im,km)  , intent(inout) :: slc        ! liquid soil moisture [m3/m3]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: canopy     ! canopy moisture content [mm]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: trans      ! total plant transpiration [m/s]
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: tsurf      !  surface skin temperature [after iteration]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: zorl       ! surface roughness [cm]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: snowxy     ! actual no. of snow layers
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tvxy       ! vegetation leaf temperature [K]
@@ -841,6 +842,7 @@
       sncovr1   (i)   = snow_cover_fraction
       qsurf     (i)   = q1(i)  + evap(i) / (con_hvap / con_cp * density * ch(i) * wind(i))     
       tskin     (i)   = temperature_radiative
+      tsurf     (i)   = temperature_radiative
       tvxy      (i)   = temperature_leaf
       tgxy      (i)   = temperature_ground
       tahxy     (i)   = temperature_canopy_air

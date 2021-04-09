@@ -31,7 +31,8 @@
       implicit none
 
       ! Interface variables
-      integer, intent(in)                                :: im,lsm,lsm_noahmp
+      integer, intent(in)                                :: im
+      integer, intent(in)                                :: lsm,lsm_noahmp
       integer, intent(in)                                :: iter
       real(kind=kind_phys), dimension(im), intent(in)    :: wind
       logical,              dimension(im), intent(inout) :: flag_guess
@@ -88,7 +89,8 @@
       implicit none
 
       ! Interface variables
-      integer,                             intent(in)    :: im,lsm,lsm_noahmp
+      integer,                             intent(in)    :: im
+      integer,                             intent(in)    :: lsm,lsm_noahmp
       integer,                             intent(in)    :: iter
 
       real(kind=kind_phys), dimension(im), intent(in)    :: wind
