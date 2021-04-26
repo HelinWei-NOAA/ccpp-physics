@@ -115,7 +115,7 @@ contains
 !>\ingroup NoahMP_LSM
   subroutine noahmp_glacier (&
                    iloc    ,jloc    ,cosz    ,nsnow   ,nsoil   ,dt      , & ! in : time/space/model-related
-                   sfctmp  ,sfcprs  ,uu      ,vv      ,q2      ,soldn   , & ! in : forcing
+                   sfctmp  ,thair   ,sfcprs  ,uu      ,vv      ,q2      ,soldn   , & ! in : forcing
                    prcp    ,lwdn    ,tbot    ,zlvl    ,ficeold ,zsoil   , & ! in : forcing
                    qsnow   ,sneqvo  ,albold  ,cm      ,ch      ,isnow   , & ! in/out : 
                    sneqv   ,smc     ,zsnso   ,snowh   ,snice   ,snliq   , & ! in/out :
@@ -216,6 +216,7 @@ contains
   integer, dimension(-nsnow+1:nsoil)             :: imelt  !phase change index [1-melt; 2-freeze]
   real (kind=kind_phys)                                           :: rhoair !density air (kg/m3)
   real (kind=kind_phys), dimension(-nsnow+1:nsoil)                :: dzsnso !snow/soil layer thickness [m]
+  !real (kind=kind_phys)                                           :: thair  !potential temperature (k)
   real (kind=kind_phys)                                           :: thair  !potential temperature (k)
   real (kind=kind_phys)                                           :: qair   !specific humidity (kg/kg) (q2/(1+q2))
   real (kind=kind_phys)                                           :: eair   !vapor pressure air (pa)
@@ -238,7 +239,7 @@ contains
 ! --------------------------------------------------------------------------------------------------
 ! re-process atmospheric forcing
 
-   call atm_glacier (sfcprs ,sfctmp ,q2     ,soldn  ,cosz   ,thair  , & 
+   call atm_glacier (sfcprs ,sfctmp ,q2     ,soldn  ,cosz   , & 
                      qair   ,eair   ,rhoair ,solad  ,solai  ,swdown )
 
    beg_wb = sneqv
@@ -330,7 +331,7 @@ contains
   end subroutine noahmp_glacier
 ! ==================================================================================================
 !>\ingroup NoahMP_LSM
-  subroutine atm_glacier (sfcprs ,sfctmp ,q2     ,soldn  ,cosz   ,thair  , &
+  subroutine atm_glacier (sfcprs ,sfctmp ,q2     ,soldn  ,cosz   , &
                           qair   ,eair   ,rhoair ,solad  ,solai  , &
                           swdown )     
 ! --------------------------------------------------------------------------------------------------
@@ -348,7 +349,7 @@ contains
 
 ! outputs
 
-  real (kind=kind_phys)                          , intent(out) :: thair  !potential temperature (k)
+! real (kind=kind_phys)                          , intent(out) :: thair  !potential temperature (k)
   real (kind=kind_phys)                          , intent(out) :: qair   !specific humidity (kg/kg) (q2/(1+q2))
   real (kind=kind_phys)                          , intent(out) :: eair   !vapor pressure air (pa)
   real (kind=kind_phys), dimension(       1:   2), intent(out) :: solad  !incoming direct solar radiation (w/m2)
@@ -362,7 +363,7 @@ contains
 ! --------------------------------------------------------------------------------------------------
 
        pair   = sfcprs                   ! atm bottom level pressure (pa)
-       thair  = sfctmp * (sfcprs/pair)**(rair/cpair) 
+!      thair  = sfctmp * (sfcprs/pair)**(rair/cpair) 
 !       qair   = q2 / (1.0+q2)           ! mixing ratio to specific humidity [kg/kg]
        qair   = q2                       ! in wrf, driver converts to specific humidity
 

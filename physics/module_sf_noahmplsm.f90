@@ -377,7 +377,7 @@ contains
                    dt      , dx      , dz8w    , nsoil   , zsoil   , nsnow   , & ! in : model configuration 
                    shdfac  , shdmax  , vegtyp  , ice     , ist     , croptype, & ! in : vegetation/soil characteristics
                    smceq   ,                                                   & ! in : vegetation/soil characteristics
-                   sfctmp  , sfcprs  , psfc    , uu      , vv      , q2      , & ! in : forcing
+                   sfctmp  , thair   , sfcprs  , psfc    , uu      , vv      , q2      , & ! in : forcing
                    qc      , soldn   , lwdn    ,                               & ! in : forcing
 	           prcpconv, prcpnonc, prcpshcv, prcpsnow, prcpgrpl, prcphail, & ! in : forcing
                    tbot    , co2air  , o2air   , foln    , ficeold , zlvl    , & ! in : forcing
@@ -390,7 +390,7 @@ contains
                    cm      , ch      , tauss   ,                               & ! in/out : 
                    grain   , gdd     , pgs     ,                               & ! in/out 
                    smcwtd  ,deeprech , rech    ,                               & ! in/out :
-		   z0wrf   , &
+		   z0wrf   , ts      , &
                    fsa     , fsr     , fira    , fsh     , ssoil   , fcev    , & ! out : 
                    fgev    , fctr    , ecan    , etran   , edir    , trad    , & ! out :
                    tgb     , tgv     , t2mv    , t2mb    , q2v     , q2b     , & ! out :
@@ -507,7 +507,8 @@ contains
   real (kind=kind_phys)                           , intent(out)   :: fctr   !transpiration heat (w/m2) [+ to atm]
   real (kind=kind_phys)                           , intent(out)   :: ssoil  !ground heat flux (w/m2)   [+ to soil]
   real (kind=kind_phys)                           , intent(out)   :: trad   !surface radiative temperature (k)
-  real (kind=kind_phys)                                           :: ts     !surface temperature (k)
+! real (kind=kind_phys)                                           :: ts     !surface temperature (k)
+  real (kind=kind_phys)                           , intent(out)   :: ts     !surface temperature (k)
   real (kind=kind_phys)                           , intent(out)   :: ecan   !evaporation of intercepted water (mm/s)
   real (kind=kind_phys)                           , intent(out)   :: etran  !transpiration rate (mm/s)
   real (kind=kind_phys)                           , intent(out)   :: edir   !soil surface evaporation rate (mm/s]
@@ -681,7 +682,7 @@ contains
 
    call atm (parameters,sfcprs  ,sfctmp   ,q2      ,                            &
              prcpconv, prcpnonc,prcpshcv,prcpsnow,prcpgrpl,prcphail, &
-             soldn   ,cosz     ,thair   ,qair    ,                   & 
+             soldn   ,cosz     ,qair    ,                   & 
              eair    ,rhoair   ,qprecc  ,qprecl  ,solad   ,solai   , &
              swdown  ,bdfall   ,rain    ,snow    ,fp      ,fpice   , prcp )     
 
@@ -884,7 +885,7 @@ contains
 !>\ingroup NoahMP_LSM
   subroutine atm (parameters,sfcprs  ,sfctmp   ,q2      ,                             &
                   prcpconv,prcpnonc ,prcpshcv,prcpsnow,prcpgrpl,prcphail , &
-                  soldn   ,cosz     ,thair   ,qair    ,                    & 
+                  soldn   ,cosz     ,qair    ,                    & 
                   eair    ,rhoair   ,qprecc  ,qprecl  ,solad   , solai   , &
 		  swdown  ,bdfall   ,rain    ,snow    ,fp      , fpice   ,prcp )     
 ! --------------------------------------------------------------------------------------------------
@@ -909,7 +910,7 @@ contains
 
 ! outputs
 
-  real (kind=kind_phys)                          , intent(out) :: thair  !potential temperature (k)
+! real (kind=kind_phys)                          , intent(out) :: thair  !potential temperature (k)
   real (kind=kind_phys)                          , intent(out) :: qair   !specific humidity (kg/kg) (q2/(1+q2))
   real (kind=kind_phys)                          , intent(out) :: eair   !vapor pressure air (pa)
   real (kind=kind_phys)                          , intent(out) :: rhoair !density air (kg/m3)
@@ -935,7 +936,7 @@ contains
 
 !jref: seems like pair should be p1000mb??
        pair   = sfcprs                   ! atm bottom level pressure (pa)
-       thair  = sfctmp * (sfcprs/pair)**(rair/cpair) 
+!      thair  = sfctmp * (sfcprs/pair)**(rair/cpair) 
 
        qair   = q2                       ! in wrf, driver converts to specific humidity
 
@@ -1849,6 +1850,14 @@ endif   ! croptype == 0
   real (kind=kind_phys),intent(out)                                  :: chb2    !sensible heat conductance, canopy air to zlvl air (m/s)
   real (kind=kind_phys)                                  :: noahmpres
 
+
+  real (kind=kind_phys)                                  :: cdmnv
+  real (kind=kind_phys)                                  :: ezpd 
+  real (kind=kind_phys)                                  :: cdmng
+  real (kind=kind_phys)                                  :: cdmn 
+  real (kind=kind_phys)                                  :: gsigma
+
+
 !jref:end  
 
   real (kind=kind_phys), parameter                   :: mpe    = 1.e-6
@@ -2086,6 +2095,10 @@ endif   ! croptype == 0
 !jref:start
                     qc      ,qsfc    ,psfc    , & !in
                     q2v     ,chv2, chleaf, chuc)               !inout 
+
+                    cdmnv = 0.4*0.4/log((zlvl-zpd)/z0m)**2
+                    ezpd =  zpd*fveg
+
 !jref:end
 #ifdef CCPP
         if (errflg /= 0) return 
@@ -2111,6 +2124,10 @@ endif   ! croptype == 0
 !jref:start
                     qc      ,qsfc    ,psfc    , & !in
                     sfcprs  ,q2b,   chb2)                          !in 
+
+                    cdmng = 0.4*0.4/log((zlvl-zpdg)/z0mg)**2
+                    ezpd  = zpdg
+
 !jref:end
 #ifdef CCPP
     if (errflg /= 0) return
@@ -2137,6 +2154,11 @@ endif   ! croptype == 0
         q1    = fveg * (eah*0.622/(sfcprs - 0.378*eah)) + (1.0 - fveg)*qsfc
         q2e   = fveg * q2v       + (1.0 - fveg) * q2b
 	z0wrf = z0m
+
+        gsigma = fveg**0.5 + fveg*(1.0-fveg)*1.0
+        cdmn   = gsigma*cdmnv + (1.0-gsigma)*cdmng
+        z0wrf = (zlvl - ezpd)*exp(-0.4/sqrt(cdmn))
+
     else
         taux  = tauxb
         tauy  = tauyb

@@ -109,6 +109,7 @@
 !  ---  in/outs:
       weasd, snwdph, tskin, tprcp, srflag, smc, stc, slc,        &
       canopy, trans, tsurf, zorl,                                &
+      rb1,fm1,fh1,ustar1,stress1,fm101,fh21,                     &
 
 ! --- Noah MP specific
 
@@ -140,6 +141,7 @@
   real(kind=kind_phys), parameter :: a3      = 273.16
   real(kind=kind_phys), parameter :: a4      = 35.86
   real(kind=kind_phys), parameter :: a23m4   = a2*(a3-a4)
+  real(kind=kind_phys), parameter :: gravity = 9.81
       
   real, parameter                 :: undefined  =  9.99e20_kind_phys
 
@@ -169,8 +171,10 @@
   real(kind=kind_phys), dimension(im)     , intent(in)    :: snet       ! total sky sfc netsw flx into ground[W/m2]
   real(kind=kind_phys)                    , intent(in)    :: delt       ! time interval [s]
   real(kind=kind_phys), dimension(im)     , intent(in)    :: tg3        ! deep soil temperature [K]
-  real(kind=kind_phys), dimension(im)     , intent(in)    :: cm         ! surface exchange coeff for momentum [-]
-  real(kind=kind_phys), dimension(im)     , intent(in)    :: ch         ! surface exchange coeff heat & moisture[-]
+! real(kind=kind_phys), dimension(im)     , intent(in)    :: cm         ! surface exchange coeff for momentum [-]
+! real(kind=kind_phys), dimension(im)     , intent(in)    :: ch         ! surface exchange coeff heat & moisture[-]
+  real(kind=kind_phys), dimension(im)     , intent(inout)    :: cm         ! surface exchange coeff for momentum [-]
+  real(kind=kind_phys), dimension(im)     , intent(inout)    :: ch         ! surface exchange coeff heat & moisture[-]
   real(kind=kind_phys), dimension(im)     , intent(in)    :: prsl1      ! sfc layer 1 mean pressure [Pa]
   real(kind=kind_phys), dimension(im)     , intent(in)    :: prslki     ! to calculate potential temperature
   real(kind=kind_phys), dimension(im)     , intent(in)    :: zf         ! height of bottom layer [m]
@@ -215,6 +219,7 @@
   real(kind=kind_phys), dimension(im)     , intent(inout) :: weasd      ! water equivalent accumulated snow depth [mm]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: snwdph     ! snow depth [mm]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tskin      ! ground surface skin temperature [K]
+
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tprcp      ! total precipitation [m]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: srflag     ! snow/rain flag for precipitation
   real(kind=kind_phys), dimension(im,km)  , intent(inout) :: smc        ! total soil moisture content [m3/m3]
@@ -224,6 +229,15 @@
   real(kind=kind_phys), dimension(im)     , intent(inout) :: trans      ! total plant transpiration [m/s]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tsurf      !  surface skin temperature [after iteration]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: zorl       ! surface roughness [cm]
+
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: rb1        ! bulk richardson #
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: fm1        !  Monin_Obukhov_similarity_function for momentum
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: fh1        !  Monin_Obukhov_similarity_function for heat
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: ustar1     !  friction velocity m s-1
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: stress1    ! wind stress m2 S-2
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: fm101      !  Monin_Obukhov_similarity_function for momentum @ 10 m
+  real(kind=kind_phys), dimension(im)     , intent(inout) :: fh21       !  Monin_Obukhov_similarity_function for heat @ 2m
+
   real(kind=kind_phys), dimension(im)     , intent(inout) :: snowxy     ! actual no. of snow layers
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tvxy       ! vegetation leaf temperature [K]
   real(kind=kind_phys), dimension(im)     , intent(inout) :: tgxy       ! bulk ground surface temperature [K]
@@ -348,6 +362,8 @@
   real (kind=kind_phys), dimension(-nsnow+1:nsoil) :: temperature_snow_soil ! inout | snow/soil temperature [K]
   real (kind=kind_phys), dimension(       1:nsoil) :: soil_liquid_vol       ! inout | volumetric liquid soil moisture [m3/m3]
   real (kind=kind_phys), dimension(       1:nsoil) :: soil_moisture_vol     ! inout | volumetric soil moisture (ice + liq.) [m3/m3]
+  real (kind=kind_phys)                            :: surface_temperature   ! 
+
   real (kind=kind_phys)                            :: temperature_canopy_air! inout | canopy air tmeperature [K]
   real (kind=kind_phys)                            :: vapor_pres_canopy_air ! inout | canopy air vapor pressure [Pa]
   real (kind=kind_phys)                            :: canopy_wet_fraction   ! inout | wetted or snowed fraction of canopy (-)
@@ -475,6 +491,12 @@
   real (kind=kind_phys) :: penman_radiation       ! used for penman calculation
   real (kind=kind_phys) :: dqsdt                  ! used for penman calculation
   real (kind=kind_phys) :: precip_freeze_frac_in  ! used for penman calculation
+
+  real (kind=kind_phys) :: tvs1       ! surface virtual temp
+  real (kind=kind_phys) :: z0h       ! thermal roughness length
+  real (kind=kind_phys) :: vptemp    ! virtual potential temp
+  real (kind=kind_phys) :: virtfac1  ! virtual potential temp
+
  
   logical               :: is_snowing             ! used for penman calculation
   logical               :: is_freeze_rain         ! used for penman calculation
@@ -538,6 +560,8 @@
       air_pressure_forcing  = prsl1(i)
       uwind_forcing         = u1(i)
       vwind_forcing         = v1(i)
+
+      potential_temperature = temperature_forcing * prslki(i)
 
       spec_humidity_forcing = max(q1(i), 1.e-8)                            ! specific humidity at level 1 (kg/kg)
       virtual_temperature   = temperature_forcing * &
@@ -659,7 +683,8 @@
         call noahmp_glacier (                                                                      &
           i_location           ,1                    ,cosine_zenith        ,nsnow                , &
           nsoil                ,timestep             ,                                             &
-          temperature_forcing  ,air_pressure_forcing ,uwind_forcing        ,vwind_forcing        , &
+          temperature_forcing  ,potential_temperature,                                             &
+          air_pressure_forcing ,uwind_forcing        ,vwind_forcing        , &
           spec_humidity_forcing,sw_radiation_forcing ,precipitation_forcing,radiation_lw_forcing , &
           temperature_soil_bot ,forcing_height       ,snow_ice_frac_old    ,zsoil                , &
           snowfall             ,snow_water_equiv_old ,snow_albedo_old      ,                       &
@@ -716,6 +741,10 @@
         t2mmp(i)               = temperature_bare_2m
         q2mp(i)                = spec_humidity_bare_2m
 
+      tskin     (i)   = temperature_ground
+      tsurf     (i)   = temperature_ground
+
+
       else  ! not glacier
 
         ice_flag = 0 
@@ -727,7 +756,8 @@
           soil_levels           ,soil_interface_depth  ,max_snow_levels       , &
           vegetation_frac       ,max_vegetation_frac   ,vegetation_category   , &
           ice_flag              ,surface_type          ,crop_type             , &
-          eq_soil_water_vol     ,temperature_forcing   ,air_pressure_forcing  , &
+          eq_soil_water_vol     ,temperature_forcing   ,potential_temperature , &
+          air_pressure_forcing  , &
           air_pressure_surface  ,uwind_forcing         ,vwind_forcing         , &
           spec_humidity_forcing ,cloud_water_forcing   ,sw_radiation_forcing  , &
           radiation_lw_forcing  ,precip_convective     , &
@@ -750,7 +780,8 @@
           cm_noahmp             ,ch_noahmp             ,snow_age              , &
           grain_carbon          ,growing_deg_days      ,plant_growth_stage    , &
           soil_moisture_wtd     ,deep_recharge         ,recharge              , &
-          z0_total              ,sw_absorbed_total     ,sw_reflected_total    , &
+          z0_total              ,surface_temperature   ,                        &
+          sw_absorbed_total     ,sw_reflected_total    , &
           lw_absorbed_total     ,sensible_heat_total   ,ground_heat_total     , &
           latent_heat_canopy    ,latent_heat_ground    ,transpiration_heat    , &
           evaporation_canopy    ,transpiration         ,evaporation_soil      , &
@@ -789,7 +820,11 @@
         t2mmp(i) = temperature_veg_2m   * vegetation_fraction + &
                   temperature_bare_2m   * (1-vegetation_fraction) 
          q2mp(i) = spec_humidity_veg_2m * vegetation_fraction + &
-                  spec_humidity_bare_2m * (1-vegetation_fraction)
+                   spec_humidity_bare_2m * (1-vegetation_fraction)
+
+      tskin     (i)   = surface_temperature
+      tsurf     (i)   = surface_temperature
+
 
       endif          ! glacial split ends
 
@@ -808,9 +843,9 @@
       snohf     (i)   = snowmelt_out * con_hfus         ! only snow that exits pack
       sbsno     (i)   = snow_sublimation
 
-      cmxy      (i)   = cm_noahmp
-      chxy      (i)   = ch_noahmp
-      zorl      (i)   = z0_total * 100.0  ! convert to cm
+!     cmxy      (i)   = cm_noahmp
+!     chxy      (i)   = ch_noahmp
+!     zorl      (i)   = z0_total * 100.0  ! convert to cm
 
       smc       (i,:) = soil_moisture_vol
       slc       (i,:) = soil_liquid_vol
@@ -818,7 +853,6 @@
       weasd     (i)   = snow_water_equiv
       snicexy   (i,:) = snow_level_ice
       snliqxy   (i,:) = snow_level_liquid
-      snwdph    (i)   = snow_depth * 1000.0       ! convert from mm to m
       canopy    (i)   = canopy_ice + canopy_liquid
       canliqxy  (i)   = canopy_liquid
       canicexy  (i)   = canopy_ice
@@ -840,9 +874,9 @@
 
       snowc     (i)   = snow_cover_fraction
       sncovr1   (i)   = snow_cover_fraction
-      qsurf     (i)   = q1(i)  + evap(i) / (con_hvap / con_cp * density * ch(i) * wind(i))     
-      tskin     (i)   = temperature_radiative
-      tsurf     (i)   = temperature_radiative
+!     qsurf     (i)   = q1(i)  + evap(i) / (con_hvap / con_cp * density * ch(i) * wind(i))     
+!     tskin     (i)   = temperature_radiative
+!     tsurf     (i)   = temperature_radiative
       tvxy      (i)   = temperature_leaf
       tgxy      (i)   = temperature_ground
       tahxy     (i)   = temperature_canopy_air
@@ -888,7 +922,6 @@
 !
 !  --- calculate potential evaporation using noah code
 !
-      potential_temperature = temperature_forcing * prslki(i)
       virtual_temperature   = temperature_forcing * (1.0 + 0.61*spec_humidity_forcing)
       penman_radiation      = sw_absorbed_total + radiation_lw_forcing
       dqsdt                 = spec_humidity_sat * a23m4/(temperature_forcing-a4)**2
@@ -903,6 +936,32 @@
           if (temperature_forcing <= 275.15) is_freeze_rain = .true.  
         end if
       end if
+!
+      virtfac1  = 1.0 +  con_fvirt * max(q1(i), 1.e-8)
+      vptemp   = potential_temperature*virtfac1
+      tvs1 = tskin(i)*virtfac1
+      z0_total = max(min(z0_total,forcing_height),1.0e-6)
+      z0h = z0_total*exp(-(1.0-sigmaf(i))**2*0.8*0.4*sqrt(ustar1(i)*(0.01/1.5e-05)))
+      z0h = max(z0h,1.0e-6)
+
+!
+!     All except tskin (and snwdph) are from forcing, still use old snwdph 
+
+!
+      call       stability                                                            &
+        (zf(i), snwdph(i), vptemp, wind(i), z0_total, z0h, tvs1, gravity,             &
+         rb1(i), fm1(i),fh1(i),fm101(i),fh21(i),cm(i),ch(i),stress1(i), ustar1(i))
+
+       
+      snwdph    (i)   = snow_depth * 1000.0       ! convert from mm to m
+
+      cmxy      (i)   = cm(i)
+      chxy      (i)   = ch(i)
+      zorl      (i)   = z0_total * 100.0  ! convert to cm
+      qsurf     (i)   = q1(i)  + evap(i) / (con_hvap / con_cp * density * ch(i) * wind(i))     
+
+!     ch_noahmp = ch_noahmp * wind(i)
+      ch_noahmp = ch(i) * wind(i)
       
       call penman (temperature_forcing, air_pressure_forcing , ch_noahmp            , &
                    virtual_temperature, potential_temperature, precipitation_forcing, &
@@ -1279,8 +1338,8 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
 !! partial sums/products are also calculated and passed back to the
 !! calling routine for later use.
       subroutine penman (sfctmp,sfcprs,ch,t2v,th2,prcp,fdown,ssoil,     &
-     &                   q2,q2sat,etp,snowng,frzgra,ffrozp,             &
-     &                   dqsdt2,emissi_in,sncovr)
+                         q2,q2sat,etp,snowng,frzgra,ffrozp,             &
+                         dqsdt2,emissi_in,sncovr)
  
 ! etp is calcuated right after ssoil
 
@@ -1290,8 +1349,8 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
       implicit none
       logical, intent(in)     :: snowng, frzgra
       real, intent(in)        :: ch, dqsdt2,fdown,prcp,ffrozp,          &
-     &                           q2, q2sat,ssoil, sfcprs, sfctmp,       &
-     &                           t2v, th2,emissi_in,sncovr
+                                 q2, q2sat,ssoil, sfcprs, sfctmp,       &
+                                 t2v, th2,emissi_in,sncovr
       real, intent(out)       :: etp
       real                    :: epsca,flx2,rch,rr,t24
       real                    :: a, delta, fnet,rad,rho,emissi,elcp1,lvs
@@ -1329,7 +1388,7 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
       else
 ! ---- ...  fractional snowfall/rainfall
         rr = rr + (cpice*ffrozp+cph2o*(1.-ffrozp))                      &
-     &       *prcp/rch
+             *prcp/rch
       end if
 
 ! ----------------------------------------------------------------------
@@ -1355,4 +1414,168 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
 ! ----------------------------------------------------------------------
       end subroutine penman
 
+      subroutine stability                                              &
+!  ---  inputs:
+           ( z1, snwdph, thv1, wind, z0max, ztmax, tvs, grav,           &
+!  ---  outputs:
+             rb, fm, fh, fm10, fh2, cm, ch, stress, ustar)
+!-----
+      use machine , only : kind_phys
+
+      integer, parameter :: kp = kind_phys
+       real (kind=kind_phys), parameter :: ca=0.4_kind_phys
+
+!  ---  inputs:
+      real(kind=kind_phys), intent(in) ::                               &
+             z1, snwdph, thv1, wind, z0max, ztmax, tvs, grav
+
+!  ---  outputs:
+      real(kind=kind_phys), intent(out) ::                              &
+             rb, fm, fh, fm10, fh2, cm, ch, stress, ustar
+
+!  ---  locals:
+      real(kind=kind_phys), parameter :: alpha=5.0_kp, a0=-3.975_kp,     &
+             a1=12.32_kp,   alpha4=4.0_kp*alpha                   ,      &
+             b1=-7.755_kp,  b2=6.041_kp,  alpha2=alpha+alpha      ,      &
+             beta=1.0_kp                                          ,      &
+             a0p=-7.941_kp, a1p=24.75_kp, b1p=-8.705_kp, b2p=7.899_kp,   &
+             ztmin1=-999.0_kp, zero=0.0_kp, one=1.0_kp
+
+      real(kind=kind_phys) :: aa,     aa0,    bb,     bb0, dtv,   adtv,  &
+                           hl1,    hl12,   pm,     ph,  pm10,  ph2,      &
+                           z1i,                                          &
+                           fms,    fhs,    hl0,    hl0inf, hlinf,        &
+                           hl110,  hlt,    hltinf, olinf,                &
+                           tem1,   tem2, ztmax1
+
+          z1i = one / z1
+
+          tem1   = z0max/z1
+          if (abs(one-tem1) > 1.0e-6_kp) then
+            ztmax1 = - beta*log(tem1)/(alpha2*(one-tem1))
+          else
+            ztmax1 = 99.0_kp
+          endif
+          if( z0max < 0.05_kp .and. snwdph < 10.0_kp ) ztmax1 = 99.0_kp
+
+!  compute stability indices (rb and hlinf)
+
+          dtv     = thv1 - tvs
+          adtv    = max(abs(dtv),0.001_kp)
+          dtv     = sign(1.,dtv) * adtv
+#ifdef GSD_SURFACE_FLUXES_BUGFIX
+          rb      = max(-5000.0_kp, grav * dtv * z1              &
+                  / (thv1 * wind * wind))
+#else
+          rb      = max(-5000.0_kp, (grav+grav) * dtv * z1       &
+                  / ((thv1 + tvs) * wind * wind))
+#endif
+          tem1    = one / z0max
+          tem2    = one / ztmax
+          fm      = log((z0max+z1)  * tem1)
+          fh      = log((ztmax+z1)  * tem2)
+          fm10    = log((z0max+10.0_kp) * tem1)
+          fh2     = log((ztmax+2.0_kp)  * tem2)
+          hlinf   = rb * fm * fm / fh
+          hlinf   = min(max(hlinf,ztmin1),ztmax1)
+!
+!  stable case
+!
+          if (dtv >= zero) then
+            hl1 = hlinf
+            if(hlinf > 0.25_kp) then
+              tem1   = hlinf * z1i
+              hl0inf = z0max * tem1
+              hltinf = ztmax * tem1
+              aa     = sqrt(one + alpha4 * hlinf)
+              aa0    = sqrt(one + alpha4 * hl0inf)
+              bb     = aa
+              bb0    = sqrt(one + alpha4 * hltinf)
+              pm     = aa0 - aa + log( (aa + one)/(aa0 + one) )
+              ph     = bb0 - bb + log( (bb + one)/(bb0 + one) )
+              fms    = fm - pm
+              fhs    = fh - ph
+              hl1    = fms * fms * rb / fhs
+              hl1    = min(max(hl1, ztmin1), ztmax1)
+            endif
+!
+!  second iteration
+!
+            tem1  = hl1 * z1i
+            hl0   = z0max * tem1
+            hlt   = ztmax * tem1
+            aa    = sqrt(one + alpha4 * hl1)
+            aa0   = sqrt(one + alpha4 * hl0)
+            bb    = aa
+            bb0   = sqrt(one + alpha4 * hlt)
+            pm    = aa0 - aa + log( (one+aa)/(one+aa0) )
+            ph    = bb0 - bb + log( (one+bb)/(one+bb0) )
+            hl110 = hl1 * 10.0_kp * z1i
+            hl110 = min(max(hl110, ztmin1), ztmax1)
+            aa    = sqrt(one + alpha4 * hl110)
+            pm10  = aa0 - aa + log( (one+aa)/(one+aa0) )
+            hl12  = (hl1+hl1) * z1i
+            hl12  = min(max(hl12,ztmin1),ztmax1)
+!           aa    = sqrt(one + alpha4 * hl12)
+            bb    = sqrt(one + alpha4 * hl12)
+            ph2   = bb0 - bb + log( (one+bb)/(one+bb0) )
+!
+!  unstable case - check for unphysical obukhov length
+!
+          else                          ! dtv < 0 case
+            olinf = z1 / hlinf
+            tem1  = 50.0_kp * z0max
+            if(abs(olinf) <= tem1) then
+              hlinf = -z1 / tem1
+              hlinf = min(max(hlinf,ztmin1),ztmax1)
+            endif
+!
+!  get pm and ph
+!
+            if (hlinf >= -0.5_kp) then
+              hl1   = hlinf
+              pm    = (a0  + a1*hl1)  * hl1   / (one+ (b1+b2*hl1)  *hl1)
+              ph    = (a0p + a1p*hl1) * hl1   / (one+ (b1p+b2p*hl1)*hl1)
+              hl110 = hl1 * 10.0_kp * z1i
+              hl110 = min(max(hl110, ztmin1), ztmax1)
+              pm10  = (a0 + a1*hl110) * hl110/(one+(b1+b2*hl110)*hl110)
+              hl12  = (hl1+hl1) * z1i
+              hl12  = min(max(hl12, ztmin1), ztmax1)
+              ph2   = (a0p + a1p*hl12) * hl12/(one+(b1p+b2p*hl12)*hl12)
+            else                       ! hlinf < 0.05
+              hl1   = -hlinf
+              tem1  = one / sqrt(hl1)
+              pm    = log(hl1) + 2.0_kp * sqrt(tem1) - .8776_kp
+              ph    = log(hl1) + 0.5_kp * tem1 + 1.386_kp
+!             pm    = log(hl1) + 2.0 * hl1 ** (-.25) - .8776
+!             ph    = log(hl1) + 0.5 * hl1 ** (-.5) + 1.386
+              hl110 = hl1 * 10.0_kp * z1i
+              hl110 = min(max(hl110, ztmin1), ztmax1)
+              pm10  = log(hl110) + 2.0_kp/sqrt(sqrt(hl110)) - 0.8776_kp
+!             pm10  = log(hl110) + 2. * hl110 ** (-.25) - .8776
+              hl12  = (hl1+hl1) * z1i
+              hl12  = min(max(hl12, ztmin1), ztmax1)
+              ph2   = log(hl12) + 0.5_kp / sqrt(hl12) + 1.386_kp
+!             ph2   = log(hl12) + .5 * hl12 ** (-.5) + 1.386
+            endif
+
+          endif          ! end of if (dtv >= 0 ) then loop
+!
+!  finish the exchange coefficient computation to provide fm and fh
+!
+          fm        = fm - pm
+          fh        = fh - ph
+          fm10      = fm10 - pm10
+          fh2       = fh2 - ph2
+          cm        = ca * ca / (fm * fm)
+          ch        = ca * ca / (fm * fh)
+          tem1      = 0.00001_kp/z1
+          cm        = max(cm, tem1)
+          ch        = max(ch, tem1)
+          stress    = cm * wind * wind
+          ustar     = sqrt(stress)
+
+      return
+!.................................
+      end subroutine stability
       end module noahmpdrv
