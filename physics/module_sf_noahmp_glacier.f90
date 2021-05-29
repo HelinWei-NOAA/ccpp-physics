@@ -1256,28 +1256,28 @@ contains
         evb   = cev * (estg*rhsur - eair        )
         ghb   = cgh * (tgb        - stc(isnow+1))
 
-!       b     = sag-irb-shb-evb-ghb
-!       a     = 4.*cir*tgb**3 + csh + cev*destg + cgh
-!       dtg   = b/a
+        b     = sag-irb-shb-evb-ghb
+        a     = 4.*cir*tgb**3 + csh + cev*destg + cgh
+        dtg   = b/a
 
-!       irb = irb + 4.*cir*tgb**3*dtg
-!       shb = shb + csh*dtg
-!       evb = evb + cev*destg*dtg
-!       ghb = ghb + cgh*dtg
+        irb = irb + 4.*cir*tgb**3*dtg
+        shb = shb + csh*dtg
+        evb = evb + cev*destg*dtg
+        ghb = ghb + cgh*dtg
 
 ! update ground surface temperature
-!       tgb = tgb + dtg
+        tgb = tgb + dtg
 
 ! for m-o length
-!       h = csh * (tgb - sfctmp)
+        h = csh * (tgb - sfctmp)
 
-!       t = tdc(tgb)
-!       call esat(t, esatw, esati, dsatw, dsati)
-!       if (t .gt. 0.) then
-!           estg  = esatw
-!       else
-!           estg  = esati
-!       end if
+        t = tdc(tgb)
+        call esat(t, esatw, esati, dsatw, dsati)
+        if (t .gt. 0.) then
+            estg  = esatw
+        else
+            estg  = esati
+        end if
 !
         qsfc = 0.622*(estg*rhsur)/(sfcprs-0.378*(estg*rhsur))
 

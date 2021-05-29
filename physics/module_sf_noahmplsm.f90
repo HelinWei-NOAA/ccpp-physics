@@ -3929,7 +3929,7 @@ endif   ! croptype == 0
           cm = cm / ur
        endif
 
-      if (opt_sfc == 3 ) then
+      if (opt_sfc == 3 .and. iter == 1) then
 
            sigmaa    = 1.0 - (0.5/(0.5+vaie))*exp(-vaie**2/8.0)
            kbsigmaf1 = 16.4*(sigmaa*vaie**3)**(-0.25)*sqrt(dlf*ur/log((zlvl-zpd)/z0m))
@@ -4542,27 +4542,27 @@ endif   ! croptype == 0
         evb   = cev * (estg*rhsur - eair        )
         ghb   = cgh * (tgb        - stc(isnow+1))
 
-!       b     = sag-irb-shb-evb-ghb+pahb
-!       a     = 4.*cir*tgb**3 + csh + cev*destg + cgh
-!       dtg   = b/a
+        b     = sag-irb-shb-evb-ghb+pahb
+        a     = 4.*cir*tgb**3 + csh + cev*destg + cgh
+        dtg   = b/a
 
-!       irb = irb + 4.*cir*tgb**3*dtg
-!       shb = shb + csh*dtg
-!       evb = evb + cev*destg*dtg
-!       ghb = ghb + cgh*dtg
+        irb = irb + 4.*cir*tgb**3*dtg
+        shb = shb + csh*dtg
+        evb = evb + cev*destg*dtg
+        ghb = ghb + cgh*dtg
 
 ! update ground surface temperature
-!       tgb = tgb + dtg
+        tgb = tgb + dtg
 ! for m-o length
-!       h = csh * (tgb - sfctmp)
+        h = csh * (tgb - sfctmp)
 
-!       t = tdc(tgb)
-!       call esat(t, esatw, esati, dsatw, dsati)
-!       if (t .gt. 0.) then
-!           estg  = esatw
-!       else
-!           estg  = esati
-!       end if
+        t = tdc(tgb)
+        call esat(t, esatw, esati, dsatw, dsati)
+        if (t .gt. 0.) then
+            estg  = esatw
+        else
+            estg  = esati
+        end if
         qsfc = 0.622*(estg*rhsur)/(psfc-0.378*(estg*rhsur))
 
         qfx = (qsfc-qair)*cev*gamma/cpair
