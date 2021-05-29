@@ -10,7 +10,7 @@
 
       implicit none
 
-      public :: sfc_diff_init, sfc_diff_run, sfc_diff_finalize
+      public :: sfc_diff_init, sfc_diff_run,stability, sfc_diff_finalize
 
       private
 
