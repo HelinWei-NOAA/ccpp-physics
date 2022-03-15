@@ -4677,7 +4677,7 @@ endif   ! croptype == 0
           fhg = 0.5 * (fhg+fhgnew)
        endif
 
-       cwpc = (cwp * vai * hcan * fhg)**0.5
+       cwpc = (cwp * vai * hcan * fhg)**0.7
 !       cwpc = (cwp*fhg)**0.5
 
        tmp1 = exp( -cwpc*z0hg/hcan )
