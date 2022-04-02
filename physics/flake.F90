@@ -101,7 +101,8 @@ REAL (KIND = kind_phys), PARAMETER ::        &
   albedo_water_ref       = 0.07  , & ! Water
   albedo_whiteice_ref    = 0.60  , & ! White ice
   albedo_blueice_ref     = 0.10  , & ! Blue ice
-  albedo_drysnow_ref     = 0.60  , & ! Dry snow
+!  albedo_drysnow_ref     = 0.60  , & ! Dry snow
+  albedo_drysnow_ref     = 0.90  , & ! Dry snow
   albedo_meltingsnow_ref = 0.10      ! Melting snow
 
 !  Empirical parameters.
@@ -1544,7 +1545,11 @@ ELSE Use_sediment   ! The scheme written by Shaobo Zhang for the deeper layer of
     flk_str_1 = flk_str_1 - CTT/CT*( (Q_bot_flk+I_bot_flk-I_HH_flk)/tpl_rho_w_r/tpl_c_w - &
                 depth_bs * ( 1.0 - CT ) * (T_bot_n_flk-T_bot_p_flk)/del_time )
     flk_str_2 = CTT * (T_bot_p_flk-T_bot_2_in)
-    d_h_D_dt  = flk_str_1/flk_str_2
+    if(abs(flk_str_2)<0.01) then
+       d_h_D_dt = 0.0
+    else
+       d_h_D_dt  = flk_str_1/flk_str_2
+    endif
 
 ! compute d_T_H_dt
     flk_str_1 = (Q_bot_flk+I_bot_flk-I_HH_flk)/tpl_rho_w_r/tpl_c_w
@@ -2480,18 +2485,34 @@ IF(ZoL.GE.0.0) THEN   ! Stable stratification
 ELSE                        ! Convection 
   psi_u = (1.0-c_MO_t_conv*R_z*ZoL)**c_MO_t_exp
   psi_t = (1.0-c_MO_t_conv*R_z*ZoL*MIN(z0t_sf/height_tq, 1.0))**c_MO_t_exp
-  psi_t = 2.0*LOG((1.0+psi_t)/(1.0+psi_u))
+!  psi_t = 2.0*LOG((1.0+psi_t)/(1.0+psi_u))
+  psi_t = abs(2.0*LOG((1.0+psi_t)/(1.0+psi_u)))
   psi_u = (1.0-c_MO_q_conv*R_z*ZoL)**c_MO_q_exp
   psi_q = (1.0-c_MO_q_conv*R_z*ZoL*MIN(z0q_sf/height_tq, 1.0))**c_MO_q_exp
-  psi_q = 2.0*LOG((1.0+psi_q)/(1.0+psi_u))
+!  psi_q = 2.0*LOG((1.0+psi_q)/(1.0+psi_u))
+  psi_q = abs(2.0*LOG((1.0+psi_q)/(1.0+psi_u)))
+!  write(0,*) 'psi_q= ',psi_q
 !_dbg
 !  print*(*,*) 'CONV: psi_t = ', psi_t, '   psi_q = ', psi_q
 !_dbg
 END IF 
 Q_sen_tur = -(T_a-T_s)*u_star_st*c_Karman/Pr_neutral  &
           / MAX(c_small_sf, LOG(height_tq/z0t_sf)+psi_t)
+if(MAX(c_small_sf, LOG(height_tq/z0t_sf)+psi_t) .lt. 10E-6) then
+  write(0,*)'inside flake'
+  write(0,*) Q_sen_tur, T_a, T_s, u_star_st, c_Karman, Pr_neutral 
+  write(0,*) c_small_sf,height_tq,z0t_sf,psi_t
+  write(0,*) 'nominator= ', (T_a-T_s)*u_star_st*c_Karman/Pr_neutral
+  write(0,*) 'denominator= ',MAX(c_small_sf, LOG(height_tq/z0t_sf)+psi_t)
+endif
 Q_lat_tur = -(q_a-q_s)*u_star_st*c_Karman/Sc_neutral  &
           / MAX(c_small_sf, LOG(height_tq/z0q_sf)+psi_q)
+if(Q_lat_tur .gt. 7.0E-4) then
+  write(0,135) q_a,q_s,u_star_st,c_Karman,Sc_neutral
+  write(0,136) MAX(c_small_sf,LOG(height_tq/z0q_sf)+psi_q),c_small_sf, LOG(height_tq/z0q_sf),psi_q 
+endif
+135   format(1x,5(f16.4))
+136   format(1x,4(f16.4))
 
 END IF Turb_Fluxes
 
@@ -2511,11 +2532,20 @@ IF(l_conv_visc) THEN    ! Convection, take fluxes that are maximal in magnitude
   END IF
   IF(ABS(Q_lat_tur).GE.ABS(Q_lat_con)) THEN
     Q_latent = Q_lat_tur
+    if(Q_latent .gt. 7.0E-4) then
+       write(0,*) 'Q_lat_tur= ',Q_lat_tur
+    endif
   ELSE
     Q_latent = Q_lat_con
+    if(Q_latent .gt. 7.0E-4) then
+      write(0,*) 'Q_lat_con= ',Q_lat_con
+    endif
   END IF
   IF(ABS(Q_latent).LT.ABS(Q_lat_mol)) THEN
     Q_latent = Q_lat_mol
+    if(Q_latent .gt. 7.0E-4) then
+       write(0,*) 'Q_lat_mol= ',Q_lat_mol
+    endif
   END IF
 ELSE                    ! Stable or neutral stratification, chose fluxes that are maximal in magnitude 
   IF(ABS(Q_sen_tur).GE.ABS(Q_sen_mol)) THEN 
@@ -2525,8 +2555,14 @@ ELSE                    ! Stable or neutral stratification, chose fluxes that ar
   END IF
   IF(ABS(Q_lat_tur).GE.ABS(Q_lat_mol)) THEN 
     Q_latent = Q_lat_tur
+    if(Q_latent .gt. 7.0E-4) then
+       write(0,*) 'stable Q_lat_tur= ',Q_lat_tur
+    endif
   ELSE 
     Q_latent = Q_lat_mol  
+    if(Q_latent .gt. 7.0E-4) then
+       write(0,*) 'stable Q_lat_mol= ',Q_lat_mol
+    endif
   END IF
 END IF
 
@@ -2535,14 +2571,20 @@ END IF
 !------------------------------------------------------------------------------
 
 Q_momentum = Q_momentum*rho_a 
-!Q_sensible = Q_sensible*rho_a*tpsf_c_a_p
+Q_sensible = Q_sensible*rho_a*tpsf_c_a_p
+!write(0,*) 'Q_sensible= ',Q_sensible
 
 Q_watvap   = Q_latent*rho_a
 
-Q_latent = tpsf_L_evap
+!Q_latent = tpsf_L_evap
 IF(h_ice.GE.h_Ice_min_flk) Q_latent = Q_latent + tpl_L_f   ! Add latent heat of fusion over ice
-Q_latent = Q_watvap*Q_latent
-
+!Q_latent = Q_watvap*Q_latent
+Q_latent = Q_watvap*tpsf_L_evap
+if(Q_latent .gt. 2500.00) then
+   write(0,145) 'final Q_watvap= ',Q_watvap, 'tpsf_L_evap= ',tpsf_L_evap, 'Q_latent= ', Q_latent                   
+endif
+!Q_latent = Q_watvap*Q_latent
+145   format(A17,E12.5,1x,A13,1x,f10.2,1x,A10,1x,f9.4)
 ! Set "*_sf" variables to make fluxes accessible to driving routines that use "SfcFlx"
 u_star_a_sf     = u_star_st 
 Q_mom_a_sf      = Q_momentum  
@@ -2945,7 +2987,7 @@ SUBROUTINE flake_interface ( dMsnowdt_in, I_atm_in, Q_atm_lw_in, height_u_in, he
                              
                              T_snow_out, T_ice_out, T_mnw_out, T_wML_out, T_bot_out,               & 
                              T_B1_out, C_T_out, h_snow_out, h_ice_out, h_ML_out,                   &
-                             H_B1_out, T_sfc_n, hflx_out, evap_out,                              &
+                             H_B1_out, T_sfc_n, hflx_out, evap_out, gflx_out, lflx_out,            &
                              
                              T_bot_2_in, T_bot_2_out,ustar, q_sfc, chh, cmm )
 
@@ -2987,11 +3029,11 @@ USE data_parameters , ONLY : &
 
 USE flake_derivedtypes         ! Definitions of several derived TYPEs
 
-USE flake_parameters , ONLY :   &
-  tpl_T_f                     , & ! Fresh water freezing point [K]
-  tpl_rho_w_r                 , & ! Maximum density of fresh water [kg m^{-3}]
-  h_Snow_min_flk              , & ! Minimum snow thickness [m]
-  h_Ice_min_flk                   ! Minimum ice thickness [m]
+!USE flake_parameters , ONLY :   &
+!  tpl_T_f                     , & ! Fresh water freezing point [K]
+!  tpl_rho_w_r                 , & ! Maximum density of fresh water [kg m^{-3}]
+!  h_Snow_min_flk              , & ! Minimum snow thickness [m]
+!  h_Ice_min_flk                   ! Minimum ice thickness [m]
 
 USE flake_paramoptic_ref       ! Reference values of the optical characteristics
                                ! of the lake water, lake ice and snow 
@@ -3117,6 +3159,8 @@ REAL (KIND = kind_phys), INTENT(OUT)  :: &
   T_sfc_n                           , & ! Updated surface temperature [K]  
   hflx_out                          , & ! sensibl heat flux
   evap_out                          , & ! Latent heat flux
+  gflx_out                          , & ! flux from to water
+  lflx_out                          , & ! latent heat flux
   T_bot_2_out                       , & ! Bottom temperature
   ustar                             , &
   q_sfc                             , &
@@ -3130,16 +3174,21 @@ REAL (KIND = kind_phys) ::    &
   Q_sensible             , & ! Sensible heat flux [W m^{-2}]
   Q_latent               , & ! Latent heat flux [W m^{-2}]
   Q_watvap               , & ! Flux of water vapour [kg m^{-2} s^{-1}]
+  Q_w_flux               , & ! flux from ice to water
   rho_a
 
 ! ADDED by Shaobo Zhang
 LOGICAL lflk_botsed_use
 !REAL (KIND = kind_phys) :: T_bot_2_in, T_bot_2_out
-
+REAL (KIND = kind_phys), parameter :: tpl_rho_w_r  = 1.0E+03 
+REAL (KIND = kind_phys), parameter :: tpl_T_f      = 273.15
+REAL (KIND = kind_phys), parameter :: h_Snow_min_flk = 1.0E-5
+REAL (KIND = kind_phys), parameter :: h_Ice_min_flk  = 1.0E-9
 !==============================================================================
 !  Start calculations
 !------------------------------------------------------------------------------
- lflk_botsed_use   = .TRUE.
+! lflk_botsed_use   = .TRUE.
+ lflk_botsed_use   = .FALSE.
 !------------------------------------------------------------------------------
 !  Set albedos of the lake water, lake ice and snow
 !------------------------------------------------------------------------------
@@ -3153,9 +3202,10 @@ LOGICAL lflk_botsed_use
 ! Snow is not considered
 !albedo_snow  = albedo_ice  
 albedo_ice   = albedo_whiteice_ref
-albedo_snow  = albedo_ice 
+!albedo_snow  = albedo_ice  
+albedo_snow  = albedo_drysnow_ref
 opticpar_water%extincoef_optic(1) = water_extinc
-!print*,'albedo= ',albedo_water,albedo_ice,albedo_snow
+!write(0,*)'albedo= ',albedo_water,albedo_ice,albedo_snow
 
 !------------------------------------------------------------------------------
 !  Set optical characteristics of the lake water, lake ice and snow
@@ -3218,7 +3268,8 @@ Q_w_flk = Q_w_flk - SfcFlx_lwradwsfc(T_sfc_p)  ! Radiation of the surface (notic
 CALL SfcFlx_momsenlat ( height_u_in, height_tq_in, fetch,                      &
                         U_a_in, T_a_in, q_a_in, T_sfc_p, P_a_in, h_ice_p_flk,  &
                         Q_momentum, Q_sensible, Q_latent, Q_watvap, q_sfc, rho_a )
-
+!write(0,*)'tpl_rho_w_r= ', tpl_rho_w_r
+!write(0,*) 'Q_momentum= ',Q_momentum
 u_star_w_flk = SQRT(-Q_momentum/tpl_rho_w_r)
 ustar = u_star_w_flk
 
@@ -3268,6 +3319,9 @@ h_ML_out   = h_ML_n_flk
 H_B1_out   = H_B1_n_flk    
 hflx_out   = Q_sensible
 evap_out   = Q_watvap
+!evap_out   = Q_latent
+gflx_out   = Q_w_flk
+lflx_out   = Q_latent
 chh        = ch * U_a_in * rho_a
 cmm        = cm * U_a_in
 

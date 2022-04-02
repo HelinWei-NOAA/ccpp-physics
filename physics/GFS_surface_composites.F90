@@ -43,9 +43,10 @@ contains
       integer,                             intent(in   ) :: im, lkm, kdt
       logical,                             intent(in   ) :: flag_init, flag_restart, frac_grid, cplflx, cplice, cplwav2atm
       logical, dimension(:),              intent(inout)  :: flag_cice
-      logical,              dimension(:), intent(inout)  :: dry, icy, lake, use_flake, wet
-      real(kind=kind_phys), dimension(:), intent(in   )  :: landfrac, lakefrac, lakedepth, oceanfrac
-      real(kind=kind_phys), dimension(:), intent(inout)  :: cice, hice
+      logical,              dimension(:), intent(inout)  :: dry, icy, lake, wet
+      integer,              dimension(:), intent(inout)  :: use_flake
+      real(kind=kind_phys), dimension(:), intent(in   )  :: landfrac, lakefrac, lakedepth
+      real(kind=kind_phys), dimension(:), intent(inout)  :: cice, hice, oceanfrac             
       real(kind=kind_phys), dimension(:), intent(  out)  :: frland
       real(kind=kind_phys), dimension(:), intent(in   )  :: snowd, tprcp, uustar, weasd, qss
 
@@ -76,6 +77,28 @@ contains
       errmsg = ''
       errflg = 0
 
+! to prepare to separate lake from ocean under water category!     
+      do i = 1, im
+         if( lakefrac(i) > zero .and. lakedepth(i) > one) then
+            lake(i) = .true.
+            wet(i)  = .true.
+!            dry(i)  = .false.
+!            icy(i)  = .false.
+            if (lkm == 1 ) then
+               use_flake(i) = 1
+            elseif (lkm == 2 ) then
+               use_flake(i) = 2
+            else
+               use_flake(i) = 0
+            endif
+         else
+            lake(i) = .false.
+            wet(i)  = .false.
+            use_flake(i) = 0
+         endif
+      enddo
+
+
       if (frac_grid) then  ! cice is ice fraction wrt water area
         do i=1,im
           frland(i) = landfrac(i)
@@ -99,6 +122,7 @@ contains
                 flag_cice(i)   = .false.
                 islmsk_cice(i) = 0
                 islmsk(i)      = 0
+                wet(i)         = .true.
                 icy(i)         = .false.
               endif
               if (cice(i) < one) then
@@ -137,9 +161,11 @@ contains
       else
 
         do i = 1, IM
+          oceanfrac(i) = one -  landfrac(i) - lakefrac(i)
           if (islmsk(i) == 1) then
 !           tsfcl(i)  = tsfc(i)
             dry(i)    = .true.
+            wet(i)    = .false.
             frland(i) = one
             cice(i)   = zero
             hice(i)   = zero
@@ -190,6 +216,7 @@ contains
                 cice(i)   = zero
                 hice(i)   = zero
                 islmsk(i) = 0
+                wet(i) = .true. ! some open lake
                 icy(i)    = .false.
               endif
               islmsk_cice(i) = islmsk(i)
@@ -244,19 +271,23 @@ contains
       enddo
 
 ! to prepare to separate lake from ocean under water category
-      do i = 1, im
-        if ((wet(i) .or. icy(i)) .and. lakefrac(i) > zero) then
-          lake(i) = .true.
-          if (lkm == 1 .and. lakefrac(i) >= 0.15 .and. lakedepth(i) > one) then
-            use_flake(i) = .true.
-          else
-            use_flake(i) = .false.
-          endif
-        else
-          lake(i) = .false.
-          use_flake(i) = .false.
-        endif
-      enddo
+!      do i = 1, im
+!        if ((wet(i) .or. icy(i))) then
+!           if( lakefrac(i) > zero .and. lakedepth(i) > one) then
+!              lake(i) = .true.
+!              if (lkm == 1 ) then
+!                use_flake(i) = 1
+!              elseif (lkm == 2 ) then
+!                use_flake(i) = 2
+!              else
+!                use_flake(i) = 0
+!             endif
+!           else
+!             lake(i) = .false.
+!             use_flake(i) = 0
+!           endif
+!        endif
+!      enddo
 !
       if (frac_grid) then
         do i=1,im
@@ -413,7 +444,7 @@ contains
       tprcp_lnd, tprcp_ice, evap, evap_wat, evap_lnd, evap_ice, hflx, hflx_wat, hflx_lnd, hflx_ice, qss, qss_wat, qss_lnd,        &
       qss_ice, tsfc, tsfco, tsfcl, tsfc_wat, tisfc, hice, cice, tiice,                                                            &
       sigmaf, zvfun, lheatstrg, h0facu, h0facs, hflxq, hffac, stc,                                                                &
-      grav, prsik1, prslk1, prslki, z1, ztmax_wat, ztmax_lnd, ztmax_ice, huge, errmsg, errflg)
+      grav, prsik1, prslk1, prslki, z1, ztmax_wat, ztmax_lnd, ztmax_ice, use_flake, huge, errmsg, errflg)
 
       implicit none
 
@@ -421,6 +452,7 @@ contains
       logical,                              intent(in) :: cplflx, frac_grid, cplwav2atm
       logical,                              intent(in) :: lheatstrg
       logical, dimension(:),                intent(in) :: flag_cice, dry, wet, icy
+      integer, dimension(:),                intent(in)  :: use_flake
       integer, dimension(:),                intent(in) :: islmsk
       real(kind=kind_phys), dimension(:),   intent(in) :: wind, t1, q1, prsl1, landfrac, lakefrac, oceanfrac,                   &
         cd_wat, cd_lnd, cd_ice, cdq_wat, cdq_lnd, cdq_ice, rb_wat, rb_lnd, rb_ice, stress_wat,                                  &
@@ -643,7 +675,8 @@ contains
       else
 
         do i=1,im
-          if (islmsk(i) == 1) then
+!          if (islmsk(i) == 1) then
+          if (dry(i)) then
             zorl(i)   = zorll(i)
             cd(i)     = cd_lnd(i)
             cdq(i)    = cdq_lnd(i)
@@ -668,7 +701,8 @@ contains
             qss(i)    = qss_lnd(i)
             hice(i)   = zero
             cice(i)   = zero
-          elseif (islmsk(i) == 0) then
+!          elseif (islmsk(i) == 0) then
+          elseif (wet(i)) then
             zorl(i)   = zorlo(i)
             cd(i)     = cd_wat(i)
             cdq(i)    = cdq_wat(i)

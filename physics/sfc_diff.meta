@@ -223,7 +223,7 @@
   units = flag
   dimensions = (horizontal_loop_extent)
   type = logical
-  intent = in
+  intent = inout
 [dry]
   standard_name = flag_nonzero_land_surface_fraction
   long_name = flag indicating presence of some land surface area fraction
@@ -565,6 +565,14 @@
   type = real
   kind = kind_phys
   intent = inout
+[lakefrac]
+  standard_name = lake_area_fraction
+  long_name = fraction of horizontal grid area occupied by lake
+  units = frac
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  intent = in
 [errmsg]
   standard_name = ccpp_error_message
   long_name = error message for error handling in CCPP
