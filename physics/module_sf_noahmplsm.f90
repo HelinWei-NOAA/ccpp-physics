@@ -2512,8 +2512,7 @@ endif   ! croptype == 0
   real (kind=kind_phys),                            intent(in)  :: lat     !latitude (radians)
   real (kind=kind_phys),                            intent(in)  :: z0m     !roughness length (m)
   real (kind=kind_phys),                            intent(in)  :: zlvl    !reference height (m)
-  integer                        , intent(in)  :: vegtyp  !vegtyp type
-  real (kind=kind_phys),                            intent(in)  :: fveg   !green vegetation fraction [0.0-1.0]
+  integer                                         , intent(in)  :: vegtyp  !vegtyp type
 
 ! outputs
   real (kind=kind_phys), dimension(-nsnow+1:nsoil), intent(out) :: df      !thermal conductivity [w/m/k]
