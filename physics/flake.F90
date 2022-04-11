@@ -1874,7 +1874,8 @@ IMPLICIT NONE
 !  similarity relations and in the expressions for the roughness lengths.
 REAL (KIND = kind_phys), PARAMETER ::   &
   c_Karman      = 0.40      , & ! The von Karman constant 
-  Pr_neutral    = 1.0       , & ! Turbulent Prandtl number at neutral static stability
+!  Pr_neutral    = 1.0       , & ! Turbulent Prandtl number at neutral static stability
+  Pr_neutral    = 0.9       , & ! Turbulent Prandtl number at neutral static stability
   Sc_neutral    = 1.0       , & ! Turbulent Schmidt number at neutral static stability
   c_MO_u_stab   = 5.0       , & ! Constant of the MO theory (wind, stable stratification)
   c_MO_t_stab   = 5.0       , & ! Constant of the MO theory (temperature, stable stratification)
@@ -2507,11 +2508,14 @@ if(MAX(c_small_sf, LOG(height_tq/z0t_sf)+psi_t) .lt. 10E-6) then
 endif
 Q_lat_tur = -(q_a-q_s)*u_star_st*c_Karman/Sc_neutral  &
           / MAX(c_small_sf, LOG(height_tq/z0q_sf)+psi_q)
-if(Q_lat_tur .gt. 7.0E-4) then
-  write(0,135) q_a,q_s,u_star_st,c_Karman,Sc_neutral
+if(Q_lat_tur .gt. 6.0E-4) then
+  Q_lat_tur = -(q_a-q_s)*u_star_st*c_Karman/3.0  &
+          / MAX(c_small_sf, LOG(height_tq/z0q_sf)+psi_q)
+  write(0,*) 'Q_lat_tur= ',Q_lat_tur
+  write(0,135) q_a,q_s,u_star_st,c_Karman
   write(0,136) MAX(c_small_sf,LOG(height_tq/z0q_sf)+psi_q),c_small_sf, LOG(height_tq/z0q_sf),psi_q 
 endif
-135   format(1x,5(f16.4))
+135   format(1x,4(f16.4))
 136   format(1x,4(f16.4))
 
 END IF Turb_Fluxes
@@ -2532,20 +2536,11 @@ IF(l_conv_visc) THEN    ! Convection, take fluxes that are maximal in magnitude
   END IF
   IF(ABS(Q_lat_tur).GE.ABS(Q_lat_con)) THEN
     Q_latent = Q_lat_tur
-    if(Q_latent .gt. 7.0E-4) then
-       write(0,*) 'Q_lat_tur= ',Q_lat_tur
-    endif
   ELSE
     Q_latent = Q_lat_con
-    if(Q_latent .gt. 7.0E-4) then
-      write(0,*) 'Q_lat_con= ',Q_lat_con
-    endif
   END IF
   IF(ABS(Q_latent).LT.ABS(Q_lat_mol)) THEN
     Q_latent = Q_lat_mol
-    if(Q_latent .gt. 7.0E-4) then
-       write(0,*) 'Q_lat_mol= ',Q_lat_mol
-    endif
   END IF
 ELSE                    ! Stable or neutral stratification, chose fluxes that are maximal in magnitude 
   IF(ABS(Q_sen_tur).GE.ABS(Q_sen_mol)) THEN 
@@ -2555,14 +2550,8 @@ ELSE                    ! Stable or neutral stratification, chose fluxes that ar
   END IF
   IF(ABS(Q_lat_tur).GE.ABS(Q_lat_mol)) THEN 
     Q_latent = Q_lat_tur
-    if(Q_latent .gt. 7.0E-4) then
-       write(0,*) 'stable Q_lat_tur= ',Q_lat_tur
-    endif
   ELSE 
     Q_latent = Q_lat_mol  
-    if(Q_latent .gt. 7.0E-4) then
-       write(0,*) 'stable Q_lat_mol= ',Q_lat_mol
-    endif
   END IF
 END IF
 
@@ -2571,7 +2560,7 @@ END IF
 !------------------------------------------------------------------------------
 
 Q_momentum = Q_momentum*rho_a 
-Q_sensible = Q_sensible*rho_a*tpsf_c_a_p
+!Q_sensible = Q_sensible*rho_a*tpsf_c_a_p
 !write(0,*) 'Q_sensible= ',Q_sensible
 
 Q_watvap   = Q_latent*rho_a
@@ -2580,11 +2569,11 @@ Q_watvap   = Q_latent*rho_a
 IF(h_ice.GE.h_Ice_min_flk) Q_latent = Q_latent + tpl_L_f   ! Add latent heat of fusion over ice
 !Q_latent = Q_watvap*Q_latent
 Q_latent = Q_watvap*tpsf_L_evap
-if(Q_latent .gt. 2500.00) then
-   write(0,145) 'final Q_watvap= ',Q_watvap, 'tpsf_L_evap= ',tpsf_L_evap, 'Q_latent= ', Q_latent                   
+if(Q_latent .gt. 2000.00) then
+   write(0,145) 'final Q_watvap= ',Q_watvap, 'tpsf_L_evap= ',tpsf_L_evap, 'Q_latent= ', Q_latent 
 endif
 !Q_latent = Q_watvap*Q_latent
-145   format(A17,E12.5,1x,A13,1x,f10.2,1x,A10,1x,f9.4)
+145   format(A17,E12.5,1x,A13,1x,f10.2,1x,A10,1x,E12.4)
 ! Set "*_sf" variables to make fluxes accessible to driving routines that use "SfcFlx"
 u_star_a_sf     = u_star_st 
 Q_mom_a_sf      = Q_momentum  
@@ -2593,7 +2582,7 @@ Q_lat_a_sf      = Q_latent
 Q_watvap_a_sf   = Q_watvap
 
 !write(85,127) Q_sensible, Q_watvap, Q_latent
- 127  format(1x, 3(f16.9,1x))
+ 127  format(1x, 3(f16.5,1x))
 
 !------------------------------------------------------------------------------
 !  End calculations

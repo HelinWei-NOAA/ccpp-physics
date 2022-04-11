@@ -224,19 +224,14 @@
 
       do_flake = .false.
       do i = 1, im
-         if(use_flake(i) .gt. 0 ) then
-            flag(i) = wet(i) .and. flag_iter(i)
+            flag(i) = flag_iter(i) .and. use_flake(i) .gt. 0
             do_flake  = flag(i) .or. do_flake
-         endif
       enddo
-!      write(0,*)'do_flake= ',do_flake
       if (.not. do_flake) return
 
       lake_depth_max = 60.0
       ipr = min(im,10)
 
-!      print*,'julian= ',julian
-!      print*,'yearlen= ',yearlen
       x = 0.03279*julian
       y = ((((0.0034*x-0.1241)*x+1.6231)*x-8.8666)*x+17.206)*x-4.2929
 
@@ -248,11 +243,10 @@
       temp2 = sin((pi+pi)*(julian-151)/244)
 
       do i = 1, im
-        if (flag(i)) then
+        if (flag(i) .and. lakedepth(i) >1.0) then
            if(.not.flag_restart .and. first_time_step) then
               T_ice(i)    = 273.15
               T_snow(i)   = 273.15
-!!!              fetch(i)    = 2.0E+03
               C_T(i)      = 0.50
               dlat       = abs(xlat(i))
               if(dlat .lt. 1.40) then
@@ -283,10 +277,11 @@
               t_bot2(i) = tb
               T_B(i)  = tb
 
-!         if (lakedepth(i) < 10.0) then
-!            T_bot1(i) = T_sfc(i)
-!            T_B(i)  = T_bot1(i)
-!         endif
+!             if(lakedepth(i).lt.10) then
+!              t_bot1(i) = T_sfc(i)
+!              t_bot2(i) = T_sfc(i)
+!              T_B(i)    = T_sfc(i)
+!             endif
 
              T_mnw(i) = C_T(i)*T_sfc(i) + (1-C_T(i))*t_bot1(i)
              T_wML(i) = C_T(i)*T_sfc(i) + (1-C_T(i))*t_bot1(i)
@@ -298,6 +293,8 @@
              chh        = ch(i) * wind(i) * 1.225 !(kg/m3)
              cmm        = cm(i) * wind(i)
            endif  !end of .not.flag_restart
+!           tb = 0.0
+!           tt = 0.0
 
           fetch(i)    = 2.0E+03
 ! compute albedo as a function of julian day and latitude
@@ -312,26 +309,20 @@
           endif
 !         w_extinc(i) = 3.0
 
-!     write(65,1002) julian,xlat(i),w_albedo(I),w_extinc(i),lakedepth(i),elev(i),tb,tt,tsurf(i),T_sfc(i)
-!     print 1002 julian,xlat(i),w_albedo(I),w_extinc(i),lakedepth(i),elev(i),tb,tt,tsurf(i),T_sfc(i)
-!     print*,'inside flake driver'
-!     print*,  julian,xlat(i),w_albedo(I),w_extinc(i),lakedepth(i),elev(i),tb,tt,tsurf(i),T_sfc(i)
+!     write(0,1002) julian,xlat(i),w_albedo(I),w_extinc(i),elev(i),tsurf(i),T_sfc(i),t_bot1(i)
+!     write(0,1003) use_flake(i),i,lakefrac(i),lakedepth(i), snwdph(i), hice(i), fice(i)        
+!     write(0,1004) ps(i), wind(i), t1(i), q1(i), dlwflx(i), dswsfc(i), zlvl(i)
 
         endif  !flag
       enddo
- 1001 format ( 'At icount=', i5, '  x = ', f5.2,5x, 'y = ', &
-               1p, e12.3)
-! 1002 format ( ' julian= ',F6.2,1x,5(F8.4,1x),3(f11.4,1x))
- 1002 format (I4,1x,3(f8.4,1x),6(f11.4,1x))
-
-
+ 1002 format ( 'julian=',F6.2,1x,F8.3,1x,2(F6.4,1x),f9.2,1x,3(f7.2,1x))
+ 1003 format ( 'use_flake=',I2,1x,I3,1x,F6.4,1x,F9.4,1x,2(F8.4,1x),F7.4)
+ 1004 format ( 'pressure',F12.2,1x,F6.2,1x,F7.2,1x,F7.4,1x,2(F8.2,1x),F8.4)
 !
 !  call lake interface
        do i=1,im
-         if (flag(i)) then
+         if (flag(i) .and. lakedepth(i) > 1.0) then
 !         write(0,*) 'flag(i)= ', i, flag(i)
-!         write(0,*) 'use_flake(i)= ',i,use_flake(i)
-!         if( use_flake(i) > 0 ) then
 !           if(weasd(i) < 0.0 .or. hice(i) < 0.0) weasd(i) =0.0
            if(snwdph(i) < 0.0) snwdph(i) =0.0
 !           dMsnowdt_in  = 10.0*0.001*weasd(i)/delt
@@ -358,13 +349,19 @@
            par_Coriolis =  2 * 7.2921 / 100000. * sin ( xlat(i) )
            del_time     = delt
 
+!           if(lakedepth(i).lt.10) then
+!                T_sfc(i) = t1(i)
+!                T_bs_in = T_sfc(i)
+!                T_B(i)  = T_bs_in
+!           endif
+
            do iter=1,5                !interation loop
              T_snow_in   = T_snow(i)
              T_ice_in    = T_ice(i)
              T_mnw_in    = T_mnw(i)
              T_wML_in    = T_wML(i)
              T_bot_in    = t_bot1(i)
-             T_B_in     = T_B(i)
+             T_B_in      = T_B(i)
              C_T_in      = C_T(i)
              h_snow_in   = snwdph(i)
              h_ice_in    = hice(i)
@@ -417,26 +414,16 @@
              qsfc(i)   = q_sfc
              chh(i)    = chh_out
              cmm(i)    = cmm_out
-!             write(0,*) 'snwdph= ',snwdph(i)
-!             write(0,*) 'weasd= ', weasd(i)
-!             write(0,*) 'after update'
              snwdph(i) = h_snow_out
-!             write(0,*) 'h_snow_out = ',h_snow_out
-!             if(h_snow_out <= 0.0 .or. h_ice_out <= 0.0) then
-!                weasd(i) = 0.0
-!             else
-!                weasd(i)  = 1000.0*h_snow_out/10.00
-!             endif
-!             write(0,*) 'weasd= ',weasd(i)
              hice(i)   = h_ice_out
              evap(i)   = Q_watvap
              hflx(i)   = Q_SHT_flx
              gflx(i)   = Q_gflx
              lflx(i)   = Q_lflx
-             if(lflx(i) > 2500.00 .or. Tsurf(i) > 350.00) then
-                 write(0,125) i,lflx(i), Tsurf(i),ps(i), wind(i),     &
-     &           t1(i), q1(i), dlwflx(i), dswsfc(i),hflx(i)
-             endif
+!             if(lflx(i) > 2500.00 .or. Tsurf(i) > 350.00) then
+!                 write(0,125) i,lflx(i), Tsurf(i),ps(i), wind(i),     &
+!     &           t1(i), q1(i), dlwflx(i), dswsfc(i),hflx(i)
+!             endif
 !             fice(i)   = fice(i)+0.01*(h_ice_out-h_ice_in)
 !             if(fice(i) .lt. min_lakeice ) then
 !                fice(i) = 0.0
