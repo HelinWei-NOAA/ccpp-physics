@@ -38,7 +38,8 @@ contains
       integer,                             intent(in   ) :: im, lkm, kdt, lsm, lsm_ruc
       logical,                             intent(in   ) :: cplflx, cplice, cplwav2atm, frac_grid
       logical, dimension(:),              intent(inout)  :: flag_cice
-      logical,              dimension(:), intent(inout)  :: dry, icy, lake, use_flake, wet
+      logical,              dimension(:), intent(inout)  :: dry, icy, lake, wet
+      integer,              dimension(:), intent(inout)  :: use_flake
       real(kind=kind_phys), dimension(:), intent(in   )  :: landfrac, lakefrac, lakedepth, oceanfrac
       real(kind=kind_phys), dimension(:), intent(inout)  :: cice, hice
       real(kind=kind_phys), dimension(:), intent(  out)  :: frland
@@ -241,17 +242,20 @@ contains
 
 ! to prepare to separate lake from ocean under water category
       do i = 1, im
-        if ((wet(i) .or. icy(i)) .and. lakefrac(i) > zero) then
-          lake(i) = .true.
-          if (lkm == 1 .and. lakefrac(i) >= 0.15 .and. lakedepth(i) > one) then
-            use_flake(i) = .true.
-          else
-            use_flake(i) = .false.
-          endif
-        else
-          lake(i) = .false.
-          use_flake(i) = .false.
-        endif
+         if( lakefrac(i) > zero .and. lakedepth(i) > one) then
+            lake(i) = .true.
+            wet(i)  = .true.
+            if (lkm == 1 ) then
+               use_flake(i) = 1
+            elseif (lkm == 2 ) then
+               use_flake(i) = 2
+            else
+               use_flake(i) = 0
+            endif
+         else
+            lake(i) = .false.
+            use_flake(i) = 0
+         endif
       enddo
 !
       if (frac_grid) then
