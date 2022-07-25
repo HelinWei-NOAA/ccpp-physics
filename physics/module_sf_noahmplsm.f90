@@ -414,7 +414,7 @@ contains
                    pblhx   , iz0tlnd , itime         ,psi_opt                 ,&
 	           prcpconv, prcpnonc, prcpshcv, prcpsnow, prcpgrpl, prcphail, & ! in : forcing
                    tbot    , co2air  , o2air   , foln    , ficeold , zlvl    , & ! in : forcing
-                   ep_1    , ep_2    , cp                                    , & ! in : constants
+                   ep_1    , ep_2    , epsm1   , cp                          , & ! in : constants
                    albold  , sneqvo  ,                                         & ! in/out : 
                    stc     , sh2o    , smc     , tah     , eah     , fwet    , & ! in/out : 
                    canliq  , canice  , tv      , tg      , qsfc, qsnow, qrain, & ! in/out : 
@@ -462,6 +462,7 @@ contains
   integer                        , intent(in)    :: jloc   !< grid index
   real (kind=kind_phys)                           , intent(in)    :: ep_1
   real (kind=kind_phys)                           , intent(in)    :: ep_2
+  real (kind=kind_phys)                           , intent(in)    :: epsm1
   real (kind=kind_phys)                           , intent(in)    :: cp
   real (kind=kind_phys)                           , intent(in)    :: dt     !< time step [sec]
   real (kind=kind_phys), dimension(       1:nsoil), intent(in)    :: zsoil  !< layer-bottom depth from soil surf (m)
@@ -816,7 +817,7 @@ contains
                  fveg   ,shdfac, pahv   ,pahg   ,pahb   ,             & !in
                  qsnow  ,dzsnso ,lat    ,canliq ,canice ,iloc, jloc , & !in
                  thsfc_loc, prslkix,prsik1x,prslk1x,garea1,       & !in
-                 pblhx  ,iz0tlnd, itime ,psi_opt, ep_1, ep_2, cp, &
+                 pblhx  ,iz0tlnd, itime ,psi_opt, ep_1, ep_2, epsm1, cp, &
 		 z0wrf  ,z0hwrf ,                                 & !out
                  imelt  ,snicev ,snliqv ,epore  ,t2m    ,fsno   , & !out
                  sav    ,sag    ,qmelt  ,fsa    ,fsr    ,taux   , & !out
@@ -1655,7 +1656,7 @@ endif   ! croptype == 0
                      fveg   ,shdfac, pahv   ,pahg   ,pahb   ,               & !in
                      qsnow  ,dzsnso ,lat    ,canliq ,canice ,iloc   , jloc, & !in
                      thsfc_loc, prslkix,prsik1x,prslk1x,garea1,       & !in
-                     pblhx  , iz0tlnd, itime,psi_opt,ep_1, ep_2, cp,  &
+                     pblhx  , iz0tlnd, itime,psi_opt,ep_1, ep_2, epsm1, cp,  &
 		     z0wrf  ,z0hwrf ,                                 & !out
                      imelt  ,snicev ,snliqv ,epore  ,t2m    ,fsno   , & !out
                      sav    ,sag    ,qmelt  ,fsa    ,fsr    ,taux   , & !out
@@ -1739,6 +1740,7 @@ endif   ! croptype == 0
   real (kind=kind_phys)                              , intent(in)    :: pblhx  !  pbl height
   real (kind=kind_phys)                              , intent(in)    :: ep_1
   real (kind=kind_phys)                              , intent(in)    :: ep_2
+  real (kind=kind_phys)                              , intent(in)    :: epsm1
   real (kind=kind_phys)                              , intent(in)    :: cp
   integer                                            , intent(in)    :: iz0tlnd
   integer                                            , intent(in)    :: itime
@@ -2202,7 +2204,7 @@ endif   ! croptype == 0
                     foln    ,co2air  ,o2air   ,btran   ,sfcprs  , & !in
                     rhsur   ,iloc    ,jloc    ,q2      ,pahv  ,pahg  , & !in
                     thsfc_loc, prslkix,prsik1x,prslk1x, garea1,        & !in
-                    pblhx   ,iz0tlnd ,itime   ,psi_opt ,ep_1, ep_2, cp, &
+                    pblhx   ,iz0tlnd ,itime   ,psi_opt ,ep_1, ep_2, epsm1,cp, &
                     eah     ,tah     ,tv      ,tgv     ,cmv, ustarx , & !inout
 #ifdef CCPP
                     chv     ,dx      ,dz8w    ,errmsg  ,errflg  , & !inout
@@ -2239,7 +2241,7 @@ endif   ! croptype == 0
                     emg     ,stc     ,df      ,rsurf   ,latheag  , & !in
                     gammag   ,rhsur   ,iloc    ,jloc    ,q2      ,pahb  , & !in
                     thsfc_loc, prslkix,prsik1x,prslk1x,vegtyp,fveg,shdfac,garea1, & !in
-                    pblhx   ,iz0tlnd ,itime   ,psi_opt ,ep_1, ep_2, cp,      &
+                    pblhx   ,iz0tlnd ,itime   ,psi_opt ,ep_1, ep_2, epsm1, cp,      &
 #ifdef CCPP
                     tgb     ,cmb     ,chb, ustarx,errmsg  ,errflg   , & !inout
 #else
@@ -3644,7 +3646,7 @@ endif   ! croptype == 0
                        foln    ,co2air  ,o2air   ,btran   ,sfcprs  , & !in
                        rhsur   ,iloc    ,jloc    ,q2      ,pahv    ,pahg     , & !in
                        thsfc_loc, prslkix,prsik1x,prslk1x, garea1,      & !in
-                       pblhx   ,iz0tlnd ,itime   ,psi_opt ,ep_1, ep_2, cp,   &
+                       pblhx   ,iz0tlnd ,itime   ,psi_opt ,ep_1, ep_2, epsm1, cp,   &
                        eah     ,tah     ,tv      ,tg      ,cm,ustarx,& !inout
 #ifdef CCPP
                        ch      ,dx      ,dz8w    ,errmsg  ,errflg  , & !inout
@@ -3666,6 +3668,7 @@ endif   ! croptype == 0
 ! -sav + irc[tv] + shc[tv] + evc[tv] + tr[tv] + canhs[tv] = 0
 ! -sag + irg[tg] + shg[tg] + evg[tg] + gh[tg] = 0
 ! --------------------------------------------------------------------------------------------------
+  use funcphys, only : fpvs
   implicit none
 ! --------------------------------------------------------------------------------------------------
 ! input
@@ -3695,6 +3698,7 @@ endif   ! croptype == 0
   real (kind=kind_phys)                           , intent(in)    :: pblhx  !  pbl height
   real (kind=kind_phys)                           , intent(in)    :: ep_1
   real (kind=kind_phys)                           , intent(in)    :: ep_2
+  real (kind=kind_phys)                           , intent(in)    :: epsm1
   real (kind=kind_phys)                           , intent(in)    :: cp
   integer                                         , intent(in)    :: iz0tlnd
   integer                                         , intent(in)    :: itime
@@ -3906,7 +3910,11 @@ endif   ! croptype == 0
 
   real (kind=kind_phys) :: t, tdc       !kelvin to degree celsius with limit -50 to +50
 
+  real(kind=kind_phys) :: fhi, qss, wrk
+  real(kind=kind_phys), parameter :: qmin=1.0e-8
+
   character(len=80) ::  message
+
 
   tdc(t)   = min( 50., max(-50.,(t-tfrz)) )
 ! ---------------------------------------------------------------------------------------------
@@ -4306,6 +4314,30 @@ endif   ! croptype == 0
          q2v = qsfc - ((evc+tr)/fveg+evg)/(latheav*rhoair) * 1./cq2v
       endif
 
+! use sfc_diag to calculate t2mv and q2v for opt_sfc=1&3
+    if(opt_stc == 1 .or. opt_stc == 3) then
+
+       fhi = fh2/fh
+       wrk = 1.0 - fhi
+        if(thsfc_loc) then ! Use local potential temperature
+          t2mv  = tv*wrk + sfctmp*prslkix*fhi - (grav+grav)/cp
+        else ! Use potential temperature referenced to 1000 hPa
+          t2mv  = tv*wrk + sfctmp*fhi - (grav+grav)/cp
+        endif
+
+        if(evg >= 0.) then !  for evaporation>0, use inferred qsurf to deduce q2v
+          q2v = qsfc*wrk + max(qmin,qair)*fhi
+        else                   !  for dew formation, use saturated q at tskin
+          qss    = fpvs(tv)
+          qss    = ep_2 * qss / (psfc + epsm1 * qss)
+          q2v= qss*wrk + max(qmin,qair)*fhi
+        endif
+        qss    = fpvs(t2mv)
+        qss    = ep_2 * qss / (psfc + epsm1 * qss)
+        q2v = min(q2v,qss)
+
+    endif
+
 ! update ch for output
      ch = cah
      chleaf = cvh
@@ -4325,7 +4357,7 @@ endif   ! croptype == 0
                         emg     ,stc     ,df      ,rsurf   ,lathea  , & !in
                         gamma   ,rhsur   ,iloc    ,jloc    ,q2      ,pahb  , & !in
                         thsfc_loc, prslkix,prsik1x,prslk1x,vegtyp,fveg,shdfac,garea1,  & !in
-                        pblhx  , iz0tlnd , itime  ,psi_opt,ep_1,ep_2,cp     ,&
+                        pblhx  , iz0tlnd , itime  ,psi_opt,ep_1,ep_2,epsm1, cp     ,&
 #ifdef CCPP
                         tgb     ,cm      ,ch,ustarx,errmsg  ,errflg  , & !inout
 #else
@@ -4344,6 +4376,7 @@ endif   ! croptype == 0
 ! bare soil:
 ! -sab + irb[tg] + shb[tg] + evb[tg] + ghb[tg] = 0
 ! ----------------------------------------------------------------------
+  use funcphys, only : fpvs
   implicit none
 ! ----------------------------------------------------------------------
 ! input
@@ -4381,6 +4414,7 @@ endif   ! croptype == 0
   real (kind=kind_phys),                            intent(in) :: pblhx  !pbl height (m)
   real (kind=kind_phys),                            intent(in) :: ep_1
   real (kind=kind_phys),                            intent(in) :: ep_2
+  real (kind=kind_phys),                            intent(in) :: epsm1
   real (kind=kind_phys),                            intent(in) :: cp
   integer,                                          intent(in) :: iz0tlnd
   integer,                                          intent(in) :: itime 
@@ -4529,6 +4563,10 @@ endif   ! croptype == 0
   real (kind=kind_phys)                :: temptrs
 
   real (kind=kind_phys) :: t, tdc     !kelvin to degree celsius with limit -50 to +50
+
+  real(kind=kind_phys) :: fhi, qss, wrk
+  real(kind=kind_phys), parameter :: qmin=1.0e-8
+
   tdc(t)   = min( 50., max(-50.,(t-tfrz)) )
 
 ! -----------------------------------------------------------------
@@ -4765,7 +4803,31 @@ endif   ! croptype == 0
      end if
     endif ! 4
 
+! use sfc_diag to calculate t2mv and q2v for opt_sfc=1&3
+    if(opt_stc == 1 .or. opt_stc == 3) then
+
+       fhi = fh2/fh
+       wrk = 1.0 - fhi
+        if(thsfc_loc) then ! Use local potential temperature
+          t2mb  = tgb*wrk + sfctmp*prslkix*fhi - (grav+grav)/cp
+        else ! Use potential temperature referenced to 1000 hPa
+          t2mb  = tgb*wrk + sfctmp*fhi - (grav+grav)/cp
+        endif
+
+        if(evb >= 0.) then !  for evaporation>0, use inferred qsurf to deduce q2v
+          q2b = qsfc*wrk + max(qmin,qair)*fhi
+        else                   !  for dew formation, use saturated q at tskin
+          qss    = fpvs(tgb)
+          qss    = ep_2 * qss / (psfc + epsm1 * qss)
+          q2b= qss*wrk + max(qmin,qair)*fhi
+        endif
+        qss    = fpvs(t2mb)
+        qss    = ep_2 * qss / (psfc + epsm1 * qss)
+        q2b = min(q2b,qss)
+
+    endif
        if (parameters%urban_flag) q2b = qsfc
+
 
 ! update ch 
      ch = ehb
