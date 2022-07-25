@@ -879,7 +879,7 @@ do i = 1, im
           precip_graupel        ,precip_hail           ,temperature_soil_bot  , &
           co2_air               ,o2_air                ,foliage_nitrogen      , &
           snow_ice_frac_old     ,forcing_height                               , &
-          con_fvirt             ,con_eps               ,con_cp                , &
+          con_fvirt             ,con_eps,con_epsm1     ,con_cp                , &
           snow_albedo_old       ,snow_water_equiv_old                         , &
           temperature_snow_soil ,soil_liquid_vol       ,soil_moisture_vol     , &
           temperature_canopy_air,vapor_pres_canopy_air ,canopy_wet_fraction   , &
