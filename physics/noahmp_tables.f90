@@ -540,10 +540,10 @@ module noahmp_tables
 
 
     real :: nroot_table(mvt)       !< number of soil layers with root present
-      data ( nroot_table (i),i=1,mvt) / 4,  4,  4,  4,  4,  3,               &
-     &                            3,  3,  3,  3,  2,  3,                     &
-     &                            1,  3,  1,  1,  0,  3,                     &
-     &                            3,  2,  0,  0,  0,  0,                     &
+      data ( nroot_table (i),i=1,mvt) / 9,  9,  9,  9,  9,  8,               &
+     &                            8,  8,  8,  8,  4,  8,                     &
+     &                            3,  8,  3,  3,  0,  8,                     &
+     &                            8,  4,  0,  0,  0,  0,                     &
      &                            0,  0,  0,  0,  0,  0 /
 
     real :: rgl_table(mvt)         !< parameter used in radiation stress function
