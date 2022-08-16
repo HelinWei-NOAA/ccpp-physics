@@ -148,7 +148,7 @@
       con_fvirt, con_rd, con_hfus, thsfc_loc,                    &
 
 !  ---  in/outs:
-      weasd, snwdph, tskin, tprcp, srflag, smc, stc, slc,        &
+      weasd, snwdph, tskin, tprcp, srflag, smois, tslb, sh2o,    &
       canopy, trans, tsurf, zorl,                                &
       rb1, fm1, fh1, ustar1, stress1, fm101, fh21,               &
       rmol1,flhc1,flqc1,do_mynnsfclay,                           &
@@ -189,13 +189,14 @@
       
   real, parameter                  :: undefined  =  9.99e20_kind_phys
 
-  integer, parameter               :: nsoil   = 4   ! hardwired to Noah
+  integer, parameter               :: nsoil   = 9   ! hardwired to Noah
   integer, parameter               :: nsnow   = 3   ! max. snow layers
 
   integer, parameter               :: iz0tlnd = 0   ! z0t treatment option
 
   real(kind=kind_phys), save  :: zsoil(nsoil)
-  data zsoil  / -0.1, -0.4, -1.0, -2.0 /
+! data zsoil  / -0.1, -0.4, -1.0, -2.0 /
+  data zsoil  / -0.005, -0.01, -0.04, -0.1, -0.3, -0.6, -1.0, -1.6, -3.0 /
 
 !
 !  ---  CCPP interface fields (in call order)
@@ -284,9 +285,9 @@
   real(kind=kind_phys), dimension(:)     , intent(inout) :: tskin      ! ground surface skin temperature [K]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: tprcp      ! total precipitation [m]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: srflag     ! snow/rain flag for precipitation
-  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: smc        ! total soil moisture content [m3/m3]
-  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: stc        ! soil temp [K]
-  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: slc        ! liquid soil moisture [m3/m3]
+  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: smois      ! total soil moisture content [m3/m3]
+  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: tslb       ! soil temp [K]
+  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: sh2o       ! liquid soil moisture [m3/m3]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: canopy     ! canopy moisture content [mm]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: trans      ! total plant transpiration [m/s]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: tsurf      ! surface skin temperature [K]
@@ -686,9 +687,9 @@ do i = 1, im
       snow_albedo_old              = alboldxy(i)
       snow_water_equiv_old         = sneqvoxy(i)
       temperature_snow_soil(-2: 0) = tsnoxy(i,:)
-      temperature_snow_soil( 1:km) = stc(i,:)
-      soil_liquid_vol              = slc(i,:)
-      soil_moisture_vol            = smc(i,:)
+      temperature_snow_soil( 1:km) = tslb(i,:)
+      soil_liquid_vol              = sh2o(i,:)
+      soil_moisture_vol            = smois(i,:)
       temperature_canopy_air       = tahxy(i)
       vapor_pres_canopy_air        = eahxy(i)
       canopy_wet_fraction          = fwetxy(i)
@@ -947,7 +948,7 @@ do i = 1, im
 !
 
       tsnoxy    (i,:) = temperature_snow_soil(-2: 0)
-      stc       (i,:) = temperature_snow_soil( 1:km)
+      tslb      (i,:) = temperature_snow_soil( 1:km)
       hflx      (i)   = sensible_heat_total !note unit change below
       evap      (i)   = latent_heat_total   !note unit change below
       evbs      (i)   = latent_heat_ground
@@ -962,8 +963,8 @@ do i = 1, im
       chxy      (i)   = ch_noahmp
       zorl      (i)   = z0_total * 100.0  ! convert to cm
 
-      smc       (i,:) = soil_moisture_vol
-      slc       (i,:) = soil_liquid_vol
+      smois       (i,:) = soil_moisture_vol
+      sh2o       (i,:) = soil_liquid_vol
       snowxy    (i)   = float(snow_levels)
       weasd     (i)   = snow_water_equiv
       snicexy   (i,:) = snow_level_ice
