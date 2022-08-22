@@ -107,8 +107,8 @@
   type = integer
   intent = in
 [km]
-  standard_name = vertical_dimension_of_soil
-  long_name = soil vertical layer dimension
+  standard_name = vertical_dimension_of_soil_internal_to_land_surface_scheme
+  long_name = number of soil layers internal to land surface model
   units = count
   dimensions = ()
   type = integer
