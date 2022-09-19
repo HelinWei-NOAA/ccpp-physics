@@ -1173,7 +1173,7 @@ do i = 1, im
         implicit none
       
         integer, intent(in)    :: vegtype
-        integer, intent(in)    :: soiltype(4)
+        integer, intent(in)    :: soiltype(9)
         integer, intent(in)    :: slopetype
         integer, intent(in)    :: soilcolor
         integer, intent(in)    :: croptype

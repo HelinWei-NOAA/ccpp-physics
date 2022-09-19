@@ -741,6 +741,7 @@ contains
 
 ! snow/soil layer thickness (m)
 
+         print*,'isnow=',isnow,nsoil,'noahmp zsnso=',zsnso
      do iz = isnow+1, nsoil
          if(iz == isnow+1) then
            dzsnso(iz) = - zsnso(iz)
@@ -6290,7 +6291,7 @@ endif   ! croptype == 0
       do j = 1,nsoil
          if (opt_frz == 1) then
             if(stc(j) < tfrz) then
-               smp = hfus*(tfrz-stc(j))/(grav*stc(j))             !(m)
+               smp = max(0.001,hfus*(tfrz-stc(j))/(grav*stc(j)))             !(m)
                supercool(j) = parameters%smcmax(j)*(smp/parameters%psisat(j))**(-1./parameters%bexp(j))
                supercool(j) = supercool(j)*dzsnso(j)*1000.        !(mm)
             end if

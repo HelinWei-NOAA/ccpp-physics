@@ -622,7 +622,7 @@
 ! Assign to zsnsoxy
 !
                  zsnsoxy(ix,isnow) = dzsnso(isnow)
-                 do is = isnow+1,4
+                 do is = isnow+1,9
                    zsnsoxy(ix,is) = zsnsoxy(ix,is-1) + dzsnso(is)
                  enddo
 !

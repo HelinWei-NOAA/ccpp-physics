@@ -655,7 +655,7 @@
   standard_name = volume_fraction_of_soil_moisture_for_land_surface_model
   long_name = volumetric fraction of soil moisture for lsm
   units = frac
-  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = inout
@@ -663,7 +663,7 @@
   standard_name = soil_temperature_for_land_surface_model
   long_name = soil temperature for land surface model
   units = K
-  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = inout
@@ -671,7 +671,7 @@
   standard_name = volume_fraction_of_unfrozen_soil_moisture_for_land_surface_model
   long_name = volume fraction of unfrozen soil moisture for lsm
   units = frac
-  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = inout
