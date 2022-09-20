@@ -741,7 +741,6 @@ contains
 
 ! snow/soil layer thickness (m)
 
-         print*,'isnow=',isnow,nsoil,'noahmp zsnso=',zsnso
      do iz = isnow+1, nsoil
          if(iz == isnow+1) then
            dzsnso(iz) = - zsnso(iz)

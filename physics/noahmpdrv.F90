@@ -196,7 +196,7 @@
 
   real(kind=kind_phys), save  :: zsoil(nsoil)
 ! data zsoil  / -0.1, -0.4, -1.0, -2.0 /
-  data zsoil  / -0.005, -0.01, -0.04, -0.1, -0.3, -0.6, -1.0, -1.6, -3.0 /
+  data zsoil  / -0.02, -0.06, -0.14, -0.46, -0.74, -1.26, -1.94, -4.06, -5.06 /
 
 !
 !  ---  CCPP interface fields (in call order)
