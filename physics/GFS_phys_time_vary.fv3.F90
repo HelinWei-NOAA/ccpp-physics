@@ -656,7 +656,7 @@
                      smoiseq(ix,is) = min(max(find_eq_smc(bexp, dwsat, dksat, ddz, smcmax),1.e-4_kind_phys),smcmax*0.99_kind_phys)
                    enddo
                  else                                    ! bexp <= 0.0
-                   smoiseq(ix,1:4) = smcmax
+                   smoiseq(ix,1:lsoil_lsm) = smcmax
                  endif                                   ! end the bexp condition
 
                  smcwtdxy(ix)   = smcmax

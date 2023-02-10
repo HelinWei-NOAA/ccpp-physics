@@ -1,12 +1,19 @@
 [ccpp-table-properties]
   name = noahmpdrv
   type = scheme
-  dependencies = funcphys.f90,machine.F,sfc_diff.f,module_sf_noahmp_glacier.f90,module_sf_noahmplsm.f90,noahmp_tables.f90,set_soilveg.f
+  dependencies = funcphys.f90,machine.F,sfc_diff.f,module_mp_soil_init.f90,module_sf_noahmp_glacier.f90,module_sf_noahmplsm.f90,noahmp_tables.f90,set_soilveg.f
 
 ########################################################################
 [ccpp-arg-table]
   name = noahmpdrv_init
   type = scheme
+[im]
+  standard_name = horizontal_dimension
+  long_name = horizontal dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
 [lsm]
   standard_name = control_for_land_surface_scheme
   long_name = flag for land surface model
@@ -65,6 +72,105 @@
   type = real
   intent = out
   kind = kind_phys
+[lsm_cold_start]
+  standard_name = do_lsm_cold_start
+  long_name = flag to signify LSM is cold-started
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+[lsoil]
+  standard_name = vertical_dimension_of_soil
+  long_name = soil vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[lsoil_lsm]
+  standard_name = vertical_dimension_of_soil_internal_to_land_surface_scheme
+  long_name = number of soil layers internal to land surface model
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[vegtype]
+  standard_name = vegetation_type_classification
+  long_name = vegetation type at each grid cell
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent= in
+[soiltyp]
+  standard_name = soil_type_classification
+  long_name = soil type at each grid cell
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent= in
+[tskin]
+  standard_name = surface_skin_temperature_over_land
+  long_name = surface skin temperature over land
+  units = K
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+[tg3]
+  standard_name = deep_soil_temperature
+  long_name = deep soil temperature
+  units = K
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+[smc]
+  standard_name = volume_fraction_of_condensed_water_in_soil
+  long_name = volumetric fraction of soil moisture
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[slc]
+  standard_name = volume_fraction_of_unfrozen_water_in_soil
+  long_name = volume fraction of unfrozen soil moisture
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[stc]
+  standard_name = soil_temperature
+  long_name = soil temperature
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[smois]
+  standard_name = volume_fraction_of_soil_moisture_for_land_surface_model
+  long_name = volumetric fraction of soil moisture for lsm
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = inout
+[sh2o]
+  standard_name = volume_fraction_of_unfrozen_soil_moisture_for_land_surface_model
+  long_name = volume fraction of unfrozen soil moisture for lsm
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = inout
+[tslb]
+  standard_name = soil_temperature_for_land_surface_model
+  long_name = soil temperature for land surface model
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = inout
 [do_mynnsfclay]
   standard_name = flag_for_mellor_yamada_nakanishi_niino_surface_layer_scheme
   long_name = flag to activate MYNN surface layer
