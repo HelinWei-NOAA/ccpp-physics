@@ -976,7 +976,7 @@
                 sfcemis_ice = semis_ice(i) ! output from CICE
               endif
             elseif (lsm == lsm_ruc) then
-              if (use_flake(i)) then
+!              if (use_flake(i)) then
                 if (sncovr_ice(i) > f_zero) then
                   sfcemis_ice = emsref(7) * (f_one-sncovr_ice(i))       &
      &                        + emsref(8) * sncovr_ice(i)
@@ -990,7 +990,7 @@
                 semis_ice(i) = sfcemis_ice
               else
                 sfcemis_ice = semis_ice(i) ! output from CICE or from RUC lsm (with snow effect)
-              endif
+!              endif
             endif ! lsm check
           endif ! icy
 
