@@ -238,21 +238,6 @@ contains
         if (nint(slmsk(i)) /= 1) slmsk(i)  = islmsk(i)
       enddo
 
-! to prepare to separate lake from ocean under water category
-      do i = 1, im
-        if ((wet(i) .or. icy(i)) .and. lakefrac(i) > zero) then
-          lake(i) = .true.
-          if (lkm == 1 .and. lakefrac(i) >= 0.15 .and. lakedepth(i) > one) then
-            use_flake(i) = .true.
-          else
-            use_flake(i) = .false.
-          endif
-        else
-          lake(i) = .false.
-          use_flake(i) = .false.
-        endif
-      enddo
-!
       if (frac_grid) then
         do i=1,im
           if (dry(i)) then
