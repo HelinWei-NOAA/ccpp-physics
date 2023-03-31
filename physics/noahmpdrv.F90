@@ -77,13 +77,6 @@
           return
         end if
 
-        if (.not. do_mynnsfclay .and. do_mynnedmf) then
-          errmsg = 'Problem : do_mynnsfclay = .false.' // &
-                   'but mynnpbl is .true.. Exiting ...'
-          errflg = 1
-          return
-        end if
-
         if ( do_mynnsfclay .and. .not. do_mynnedmf) then
           errmsg = 'Problem : do_mynnsfclay = .true.' // &
                    'but mynnpbl is .false.. Exiting ...'
@@ -93,7 +86,7 @@
 
 
         !--- initialize soil vegetation
-        call set_soilveg(me, isot, ivegsrc, nlunit)
+        call set_soilveg(me, isot, ivegsrc, nlunit, errmsg, errflg)
 
 
         ! initialize psih and psim 
@@ -131,14 +124,14 @@
   subroutine noahmpdrv_run                                       &
 !...................................
 !  ---  inputs:
-    ( im, km, lsnowl, itime, ps, u1, v1, t1, q1, soiltyp,        &
+    ( im, km, lsnowl, itime, ps, u1, v1, t1, q1, soiltyp,soilcol,&
       vegtype, sigmaf, dlwflx, dswsfc, snet, delt, tg3, cm, ch,  &
       prsl1, prslk1, prslki, prsik1, zf,pblh, dry, wind, slopetyp,    &
       shdmin, shdmax, snoalb, sfalb, flag_iter,con_g,            &
       idveg, iopt_crs, iopt_btr, iopt_run, iopt_sfc, iopt_frz,   &
       iopt_inf, iopt_rad, iopt_alb, iopt_snf, iopt_tbot,         &
       iopt_stc, iopt_trs,xlatin, xcoszin, iyrlen, julian, garea, &
-      rainn_mp, rainc_mp, snow_mp, graupel_mp, ice_mp,           &
+      rainn_mp, rainc_mp, snow_mp, graupel_mp, ice_mp, rhonewsn1,&
       con_hvap, con_cp, con_jcal, rhoh2o, con_eps, con_epsm1,    &
       con_fvirt, con_rd, con_hfus, thsfc_loc,                    &
 
@@ -169,10 +162,11 @@
   use sfc_diff,   only : stability
 ! use module_sf_noahmplsm
   use module_sf_noahmp_glacier
-  use noahmp_tables, only : isice_table, co2_table, o2_table,            &
-                            isurban_table, smcref_table, smcdry_table,   &
-                            smcmax_table, co2_table, o2_table,           &
-                            saim_table, laim_table
+! use noahmp_tables, only : isice_table, co2_table, o2_table,            &
+!                           isurban_table, smcref_table, smcdry_table,   &
+!                           smcmax_table, co2_table, o2_table,           &
+!                           saim_table, laim_table
+  use noahmp_tables
 
   implicit none
       
@@ -206,6 +200,7 @@
   real(kind=kind_phys), dimension(:)     , intent(in)    :: t1         ! layer 1 temperature [K]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: q1         ! layer 1 specific humidity [kg/kg]
   integer             , dimension(:)     , intent(in)    :: soiltyp    ! soil type (integer index)
+  integer             , dimension(:)     , intent(in)    :: soilcol    ! soil color (integer index)
   integer             , dimension(:)     , intent(in)    :: vegtype    ! vegetation type (integer index)
   real(kind=kind_phys), dimension(:)     , intent(in)    :: sigmaf     ! areal fractional cover of green vegetation
   real(kind=kind_phys), dimension(:)     , intent(in)    :: dlwflx     ! downward longwave radiation [W/m2]
@@ -262,6 +257,7 @@
   real(kind=kind_phys), dimension(:)     , intent(in)    :: snow_mp    ! microphysics snow [mm]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: graupel_mp ! microphysics graupel [mm]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: ice_mp     ! microphysics ice/hail [mm]
+  real(kind=kind_phys), dimension(:)     , intent(in)    :: rhonewsn1  ! precipitation ice density (kg/m^3)
   real(kind=kind_phys)                   , intent(in)    :: con_hvap   ! latent heat condensation [J/kg]
   real(kind=kind_phys)                   , intent(in)    :: con_cp     ! specific heat air [J/kg/K] 
   real(kind=kind_phys)                   , intent(in)    :: con_jcal   ! joules per calorie (not used)
@@ -562,6 +558,7 @@
   integer :: soil_category(nsoil)
   integer :: slope_category
   integer :: soil_color_category
+  character(len=256)                     :: dataset_identifier
 
   real (kind=kind_phys) :: spec_humidity_sat      ! saturation specific humidity
   real (kind=kind_phys) :: vapor_pressure_sat     ! saturation vapor pressure
@@ -618,6 +615,8 @@ do i = 1, im
 !
 !  --- noah-mp input variables (except snow_ice_frac_old done later)
 !
+
+      dataset_identifier    = "modified_igbp_modis_noah"
 
       i_location            = i
       j_location            = -9999
@@ -753,11 +752,14 @@ do i = 1, im
 
       soil_category       = soiltyp(i)
       slope_category      = slopetyp(i)
-      soil_color_category = 4
+      soil_color_category = soilcol(i)
+!     soil_color_category = 4
+
+      call read_mp_table_parameters(dataset_identifier)
 
       call transfer_mp_parameters(vegetation_category, soil_category, &
                         slope_category, soil_color_category, crop_type,parameters)
-
+      parameters%prcpiceden = rhonewsn1(i)
       call noahmp_options(idveg ,iopt_crs, iopt_btr , iopt_run, iopt_sfc,  &
                                  iopt_frz, iopt_inf , iopt_rad, iopt_alb,  &
                                  iopt_snf, iopt_tbot, iopt_stc, iopt_rsf,  &

@@ -15,14 +15,14 @@ contains
 !>\ingroup mod_GFS_phys_time_vary
 !! This subroutine repopulates specific time-varying surface properties for
 !! atmospheric forecast runs.
-  subroutine gcycle (me, nthrds, nx, ny, isc, jsc, nsst, tile_num, nlunit,         &
+  subroutine gcycle (me, nthrds, nx, ny, isc, jsc, nsst, tile_num, nlunit, fn_nml, &
       input_nml_file, lsoil, lsoil_lsm, kice, idate, ialb, isot, ivegsrc,          &
       use_ufo, nst_anl, fhcyc, phour, landfrac, lakefrac, min_seaice, min_lakeice, &
       frac_grid, smc, slc, stc, smois, sh2o, tslb, tiice, tg3, tref, tsfc,         &
       tsfco, tisfc, hice, fice, facsf, facwf, alvsf, alvwf, alnsf, alnwf,          &
       zorli, zorll, zorlo, weasd, slope, snoalb, canopy, vfrac, vtype,             &
-      stype, shdmin, shdmax, snowd, cv, cvb, cvt, oro, oro_uf,                     &
-      xlat_d, xlon_d, slmsk, imap, jmap)
+      stype, scolor, shdmin, shdmax, snowd, cv, cvb, cvt, oro, oro_uf,             &
+      xlat_d, xlon_d, slmsk, imap, jmap, errmsg, errflg)
 !
 !
     use machine,      only: kind_phys, kind_io8
@@ -31,6 +31,7 @@ contains
     integer,              intent(in)    :: me, nthrds, nx, ny, isc, jsc, nsst, &
                                            tile_num, nlunit, lsoil, lsoil_lsm, kice
     integer,              intent(in)    :: idate(:), ialb, isot, ivegsrc
+    character(len = 64), intent(in)     :: fn_nml
     character(len=*),     intent(in)    :: input_nml_file(:)
     logical,              intent(in)    :: use_ufo, nst_anl, frac_grid
     real(kind=kind_phys), intent(in)    :: fhcyc, phour, landfrac(:), lakefrac(:), &
@@ -74,9 +75,13 @@ contains
                                            slmsk(:)
     integer,              intent(inout) :: vtype(:),   &
                                            stype(:),   &
+                                           scolor(:),  &        !soil color
                                            slope(:)
 
     integer,              intent(in)    :: imap(:), jmap(:)
+    character(len=*),     intent(out)   :: errmsg
+    integer,              intent(out)   :: errflg
+
 !
 !     Local variables
 !     ---------------
@@ -87,6 +92,7 @@ contains
         slpfcs (nx*ny),                      &
         vegfcs (nx*ny),                      &
         sltfcs (nx*ny),                      &
+        slcfcs (nx*ny),                      &               !soil color
         TSFFCS (nx*ny),                      &
         ZORFCS (nx*ny),                      &
         AISFCS (nx*ny),                      &
@@ -103,6 +109,11 @@ contains
     real(kind=kind_phys) :: sig1t
     integer              :: npts, nb, ix, jx, ls, ios, ll
     logical              :: exists
+
+    ! Initialize CCPP error handling variables
+    errmsg = ''
+    errflg = 0
+
 !
 !@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 !
@@ -128,6 +139,7 @@ contains
       slpfcs = real(slope)
       vegfcs = real(vtype)
       sltfcs = real(stype)
+      slcfcs = real(scolor)         !soil color
 !
       if (frac_grid) then
         do ix=1,npts
@@ -210,13 +222,15 @@ contains
       enddo
 !
 #ifndef INTERNAL_FILE_NML
-      inquire (file=trim(Model%fn_nml),exist=exists)
+      inquire (file=trim(fn_nml),exist=exists)
       if (.not. exists) then
-        write(6,*) 'gcycle:: namelist file: ',trim(Model%fn_nml),' does not exist'
-        stop
+        write(6,*) 'gcycle:: namelist file: ',trim(fn_nml),' does not exist'
+        errflg = 1
+        errmsg = 'ERROR(gcycle): namelist file: ',trim(fn_nml),' does not exist.'
+        return
       else
-        open (unit=Model%nlunit, file=trim(Model%fn_nml), action='READ', status='OLD', iostat=ios)
-        rewind (Model%nlunit)
+        open (unit=nlunit, file=trim(fn_nml), action='READ', status='OLD', iostat=ios)
+        rewind (nlunit)
       endif
 #endif
       CALL SFCCYCLE (9998, npts, max(lsoil,lsoil_lsm), sig1t, fhcyc, &
@@ -227,13 +241,13 @@ contains
                      shdmin, shdmax, slpfcs, snoalb, tsffcs,         &
                      weasd, zorfcs, albfc1, tg3, canopy,             &
                      smcfc1, stcfc1, slmsk, aisfcs,                  &
-                     vfrac, vegfcs, sltfcs, alffc1, cv,              &
+                     vfrac, vegfcs, sltfcs, slcfcs,alffc1, cv,       &   !slcfcs: soil color
                      cvb, cvt, me, nthrds,                           &
                      nlunit, size(input_nml_file), input_nml_file,   &
                      min_ice, ialb, isot, ivegsrc,                   &
                      trim(tile_num_ch), i_indx, j_indx)
 #ifndef INTERNAL_FILE_NML
-      close (Model%nlunit)
+      close (nlunit)
 #endif
 !
       if ( nsst > 0 ) then
@@ -247,6 +261,7 @@ contains
       slope = int(slpfcs)
       vtype = int(vegfcs)
       stype = int(sltfcs)
+      scolor = int(slcfcs)  !soil color
 !
       do ix=1,npts
         zorll(ix) = ZORFCS(ix)
