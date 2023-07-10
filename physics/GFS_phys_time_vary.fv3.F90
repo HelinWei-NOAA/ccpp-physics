@@ -73,13 +73,13 @@
               jindx1_ci, jindx2_ci, ddy_ci, iindx1_ci, iindx2_ci, ddx_ci, imap, jmap,              &
               do_ugwp_v1, jindx1_tau, jindx2_tau, ddy_j1tau, ddy_j2tau,                            &
               isot, ivegsrc, nlunit, sncovr, sncovr_ice, lsm, lsm_noahmp, lsm_ruc, min_seaice,     &
-              fice, landfrac, vtype, weasd, lsoil, zs, dzs, lsnow_lsm_lbound, lsnow_lsm_ubound,    &
+              fice, landfrac, vtype, weasd, lsoil_lsm, zs, dzs, lsnow_lsm_lbound, lsnow_lsm_ubound,&
               tvxy, tgxy, tahxy, canicexy, canliqxy, eahxy, cmxy, chxy, fwetxy, sneqvoxy, alboldxy,&
               qsnowxy, wslakexy, albdvis_lnd, albdnir_lnd, albivis_lnd, albinir_lnd, albdvis_ice,  &
               albdnir_ice, albivis_ice, albinir_ice, emiss_lnd, emiss_ice, taussxy, waxy, wtxy,    &
               zwtxy, xlaixy, xsaixy, lfmassxy, stmassxy, rtmassxy, woodxy, stblcpxy, fastcpxy,     &
               smcwtdxy, deeprechxy, rechxy, snowxy, snicexy, snliqxy, tsnoxy , smoiseq, zsnsoxy,   &
-              slc, smc, stc, tsfcl, snowd, canopy, tg3, stype, con_t0c, lsm_cold_start, nthrds,    &
+              sh2o,smois,tslb,tsfcl, snowd, canopy, tg3, stype, con_t0c, lsm_cold_start, nthrds,   &
               lkm, use_lake_model, lakefrac, lakedepth, iopt_lake, iopt_lake_clm, iopt_lake_flake, &
               lakefrac_threshold, lakedepth_threshold, errmsg, errflg)
 
@@ -117,7 +117,7 @@
          real(kind_phys),      intent(inout) :: weasd(:)
 
          ! NoahMP - only allocated when NoahMP is used
-         integer, intent(in) :: lsoil, lsnow_lsm_lbound, lsnow_lsm_ubound
+         integer, intent(in) :: lsoil_lsm, lsnow_lsm_lbound, lsnow_lsm_ubound
          real(kind_phys),      intent(in)    :: zs(:)
          real(kind_phys),      intent(in)    :: dzs(:)
          real(kind_phys),      intent(inout) :: tvxy(:)
@@ -164,9 +164,9 @@
          real(kind_phys),      intent(inout) :: tsnoxy (:,lsnow_lsm_lbound:)
          real(kind_phys),      intent(inout) :: smoiseq(:,:)
          real(kind_phys),      intent(inout) :: zsnsoxy(:,lsnow_lsm_lbound:)
-         real(kind_phys),      intent(inout) :: slc(:,:)
-         real(kind_phys),      intent(inout) :: smc(:,:)
-         real(kind_phys),      intent(inout) :: stc(:,:)
+         real(kind_phys),      intent(inout) :: sh2o(:,:)
+         real(kind_phys),      intent(inout) :: smois(:,:)
+         real(kind_phys),      intent(inout) :: tslb(:,:)
          real(kind_phys),      intent(in)    :: tsfcl(:)
          real(kind_phys),      intent(in)    :: snowd(:)
          real(kind_phys),      intent(in)    :: canopy(:)
@@ -416,7 +416,7 @@
 
            noahmp_init: if (lsm == lsm_noahmp) then
              allocate(dzsno (lsnow_lsm_lbound:lsnow_lsm_ubound))
-             allocate(dzsnso(lsnow_lsm_lbound:lsoil)           )
+             allocate(dzsnso(lsnow_lsm_lbound:lsoil_lsm)           )
              dzsno(:)    = missing_value
              dzsnso(:)   = missing_value
 
@@ -460,7 +460,7 @@
              imn           = idate(2)
 
 !$OMP parallel do num_threads(nthrds) default(none)                     &
-!$OMP          shared(im,lsoil,con_t0c,landfrac,tsfcl,tvxy,tgxy,tahxy)  &
+!$OMP          shared(im,lsoil_lsm,con_t0c,landfrac,tsfcl,tvxy,tgxy,tahxy)  &
 !$OMP          shared(snowd,canicexy,canliqxy,canopy,eahxy,cmxy,chxy)   &
 !$OMP          shared(fwetxy,sneqvoxy,weasd,alboldxy,qsnowxy,wslakexy)  &
 !$OMP          shared(taussxy)                                          &
@@ -468,7 +468,7 @@
 !$OMP          shared(stmassxy,rtmassxy,woodxy,stblcpxy,fastcpxy)       &
 !$OMP          shared(isbarren_table,isice_table,isurban_table)         &
 !$omp          shared(iswater_table,laim_table,sla_table,bexp_table)    &
-!$omp          shared(stc,smc,slc,tg3,snowxy,tsnoxy,snicexy,snliqxy)    &
+!$omp          shared(tslb,smois,sh2o,tg3,snowxy,tsnoxy,snicexy,snliqxy)    &
 !$omp          shared(zsnsoxy,STYPE,SMCMAX_TABLE,SMCWLT_TABLE,zs,dzs)   &
 !$omp          shared(DWSAT_TABLE,DKSAT_TABLE,PSISAT_TABLE,smoiseq)     &
 !$OMP          shared(smcwtdxy,deeprechxy,rechxy,errmsg,errflg)         &
@@ -543,10 +543,10 @@
                  endif  ! non urban ...
 
                  if (vegtyp == isice_table) then
-                   do is = 1,lsoil
-                     stc(ix,is) = min(stc(ix,is),min(tg3(ix),263.15_kind_phys))
-                     smc(ix,is) = one
-                     slc(ix,is) = zero
+                   do is = 1,lsoil_lsm
+                     tslb(ix,is) = min(tslb(ix,is),min(tg3(ix),263.15_kind_phys))
+                     smois(ix,is) = one
+                     sh2o(ix,is) = zero
                    enddo
                  endif
 
@@ -614,14 +614,14 @@
                    dzsnso(is) = -dzsno(is)
                  enddo
 
-                 do is = 1,4
+                 do is = 1,lsoil_lsm
                    dzsnso(is) = -dzs(is)
                  enddo
 !
 ! Assign to zsnsoxy
 !
                  zsnsoxy(ix,isnow) = dzsnso(isnow)
-                 do is = isnow+1,4
+                 do is = isnow+1,lsoil_lsm
                    zsnsoxy(ix,is) = zsnsoxy(ix,is-1) + dzsnso(is)
                  enddo
 !
@@ -644,10 +644,10 @@
                  endif
 
                  if ((bexp > zero) .and. (smcmax > zero) .and. (-psisat > zero)) then
-                   do is = 1, lsoil
+                   do is = 1, lsoil_lsm
                      if ( is == 1 )then
                        ddz = -zs(is+1) * 0.5_kind_phys
-                     elseif ( is < lsoil ) then
+                     elseif ( is < lsoil_lsm ) then
                        ddz = ( zs(is-1) - zs(is+1) ) * 0.5_kind_phys
                      else
                        ddz = zs(is-1) - zs(is)
@@ -655,7 +655,7 @@
                      smoiseq(ix,is) = min(max(find_eq_smc(bexp, dwsat, dksat, ddz, smcmax),1.e-4_kind_phys),smcmax*0.99_kind_phys)
                    enddo
                  else                                    ! bexp <= 0.0
-                   smoiseq(ix,1:4) = smcmax
+                   smoiseq(ix,1:lsoil_lsm) = smcmax
                  endif                                   ! end the bexp condition
 
                  smcwtdxy(ix)   = smcmax
