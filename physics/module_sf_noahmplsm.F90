@@ -190,7 +190,7 @@ use sfc_diff, only   : stability
   real (kind=kind_phys), parameter :: denice = 917.      !< density of ice (kg/m3)
 
   integer, private, parameter :: mband = 2
-  integer, private, parameter :: nsoil = 4
+  integer, private, parameter :: nsoil = 9
   integer, private, parameter :: nstage = 8
 
   type noahmp_parameters ! define a noahmp parameters type
