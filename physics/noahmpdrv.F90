@@ -1843,9 +1843,8 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
       integer,              dimension(1:lsoil)  :: st_levels_input ! 4 - for Noah lsm
       integer,              dimension(1:lsoil)  :: sm_levels_input ! 4 - for Noah lsm
 
-!     integer :: i,j,k,l,ii,jj,num_soil_layers
+      integer :: i,j,k,l,ii,jj,num_soil_layers
 
-      integer :: j,k,l,ii,jj,num_soil_layers
 
       ! Initialize the CCPP error handling variables
 
@@ -1887,6 +1886,7 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
         enddo
 
       ! Noah lsm input
+          print*,'maxsmc=',MAXSMC,'smcref_table=',smcref_table
 
          do i = 1,slcats
 
@@ -1909,9 +1909,10 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
           sm_input(i,1,1)=0.
 
           !--- initialize smcwlt2 and smcref2 using Noah values
-
-            smcref2 (i) = refsmcNoah(stype(i))
-            smcwlt2 (i) = wltsmcNoah(stype(i))
+            ii=stype(i)
+            if(ii.le.1)ii=1
+            smcref2 (i) = refsmcNoah(ii)
+            smcwlt2 (i) = wltsmcNoah(ii)
 
           do k=1,lsoil
              st_input(i,k+1,1)=stc(i,k)

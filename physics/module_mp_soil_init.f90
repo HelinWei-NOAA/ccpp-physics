@@ -137,8 +137,7 @@ contains
 
    real, dimension ( 1:nzs ) :: soiliqw
 
-!  integer ::  i,j,l,itf,jtf
-   integer ::  j,l,itf,jtf
+   integer ::  i,j,l,itf,jtf
    real    ::  riw,xlmelt,tln,dqm,ref,psis,qmin,bclh
 
    integer :: errflag
