@@ -179,7 +179,7 @@
     ( im, km, lsnowl, itime, ps, u1, v1, t1, q1, soiltyp,soilcol,&
       vegtype, sigmaf, dlwflx, dswsfc, snet, delt, tg3, cm, ch,  &
       prsl1, prslk1, prslki, prsik1, zf,pblh, dry, wind, slopetyp,&
-      shdmin, shdmax, snoalb, sfalb, flag_iter,con_g,            &
+      shdmin, shdmax, snoalb, sfalb, flag_iter,con_g,zs,         &
       idveg, iopt_crs, iopt_btr, iopt_run, iopt_sfc, iopt_frz,   &
       iopt_inf, iopt_rad, iopt_alb, iopt_snf, iopt_tbot,iopt_stc,&
       iopt_trs,iopt_diag,xlatin, xcoszin, iyrlen, julian, garea, &
@@ -263,6 +263,7 @@
   real(kind=kind_phys), parameter  :: a4      = 35.86
   real(kind=kind_phys), parameter  :: a23m4   = a2*(a3-a4)
   real(kind=kind_phys), intent(in) :: con_g 
+  real(kind=kind_phys), dimension(:)     , intent(in)    :: zs     ! depth of soil levels for land surface model
       
   real, parameter                  :: undefined  =  9.99e20_kind_phys
 
@@ -271,8 +272,8 @@
 
   integer, parameter               :: iz0tlnd = 0   ! z0t treatment option
 
-  real(kind=kind_phys), save  :: zsoil(nsoil)
-  data zsoil  / -0.02, -0.06, -0.14, -0.46, -0.74, -1.26, -1.94, -4.06, -5.06 /
+! real(kind=kind_phys), save  :: zsoil(nsoil)
+! data zsoil  / -0.02, -0.06, -0.14, -0.46, -0.74, -1.26, -1.94, -4.06, -5.06 /
 
 !
 !  ---  CCPP interface fields (in call order)
@@ -765,7 +766,7 @@ do i = 1, im
       spatial_scale         = -9999.0
       atmosphere_thickness  = -9999.0
       soil_levels           = km
-      soil_interface_depth  = zsoil
+      soil_interface_depth  = zs
       max_snow_levels       = nsnow
       vegetation_frac       = sigmaf(i)
       max_vegetation_frac   = shdmax(i)
@@ -921,7 +922,7 @@ do i = 1, im
           nsoil                ,timestep             ,                                             &
           temperature_forcing  ,air_pressure_forcing ,uwind_forcing        ,vwind_forcing        , &
           spec_humidity_forcing,sw_radiation_forcing ,precipitation_forcing,radiation_lw_forcing , &
-          temperature_soil_bot ,forcing_height       ,snow_ice_frac_old    ,zsoil                , &
+          temperature_soil_bot ,forcing_height       ,snow_ice_frac_old    ,zs                   , &
           thsfc_loc            ,prslkix              ,prsik1x              ,prslk1x              , &
           air_pressure_surface ,pblhx                ,iz0tlnd              ,itime                , &
 	  vegetation_frac      ,area_grid            ,psi_opt                                    , &
