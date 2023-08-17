@@ -10,8 +10,7 @@ contains
 
    subroutine init_soil_3_mp (im, tsk , tmn , smois , tslb , &
                                  st_input , sm_input ,    &
-                                 zs , dzs , &
-                                 st_levels_input , sm_levels_input , &
+                                 zsi, zso , &
                                  num_soil_layers , num_st_levels_input , num_sm_levels_input ,  &
                                  num_st_levels_alloc , num_sm_levels_alloc)
 
@@ -21,15 +20,16 @@ contains
 
       integer , intent(in) :: im
 
-      integer , dimension(1:num_st_levels_input) , intent(inout) :: st_levels_input
-      integer , dimension(1:num_sm_levels_input) , intent(inout) :: sm_levels_input
+!     integer , dimension(1:num_st_levels_input) , intent(inout) :: st_levels_input
+!     integer , dimension(1:num_sm_levels_input) , intent(inout) :: sm_levels_input
 
       real , dimension(1:im,1:num_st_levels_alloc,1:1) , intent(inout) :: st_input
       real , dimension(1:im,1:num_sm_levels_alloc,1:1) , intent(inout) :: sm_input
 
       real , dimension(1:im,1:1) , intent(in) :: tmn
       real , dimension(1:im,1:1) , intent(inout) :: tsk
-      real , dimension(num_soil_layers) :: zs , dzs       
+      real , dimension(num_sm_levels_input) :: zsi       
+      real , dimension(num_soil_layers) :: zso       
 
       real , dimension(1:im,num_soil_layers,1:1) , intent(out) :: tslb , smois
 
@@ -58,7 +58,7 @@ contains
 
          do i = 1 , im
             sm_input(i,1,1) = (sm_input(i,2,1)-sm_input(i,3,1))/   &
-                              (st_levels_input(2)-st_levels_input(1))*st_levels_input(1)+  &
+                              (zsi(2)-zsi(1))*zsi(1)+  &
                               sm_input(i,2,1)
             sm_input(i,num_sm_levels_input+2,1) = sm_input(i,num_sm_levels_input+1,1)
          end do
@@ -66,7 +66,7 @@ contains
          zhave(1) = 0.
 
          DO l = 1 , num_st_levels_input
-            zhave(l+1) = st_levels_input(l) / 100.
+            zhave(l+1) = zsi(l)
          END DO
 
          zhave(num_st_levels_input+2) = 300. / 100.
@@ -75,12 +75,12 @@ contains
       !  (zs).
 
       z_wantt_2 : do lwant = 1 , num_soil_layers
-         z_havet_2 : do lhave = 1 , num_st_levels_input +2
-            if ( ( zs(lwant) .ge. zhave(lhave  ) ) .and. &
-                 ( zs(lwant) .le. zhave(lhave+1) ) ) then
+         z_havet_2 : do lhave = 1 , num_st_levels_input +1
+            if ( ( zso(lwant) .ge. zhave(lhave  ) ) .and. &
+                 ( zso(lwant) .le. zhave(lhave+1) ) ) then
                   do i = 1 , im
-                     tslb(i,lwant,1)= ( st_input(i,lhave,1 ) * ( zhave(lhave+1) - zs   (lwant) ) + &
-                                        st_input(i,lhave+1,1) * ( zs   (lwant  ) - zhave(lhave) ) ) / &
+                     tslb(i,lwant,1)= ( st_input(i,lhave,1 ) * ( zhave(lhave+1) - zso   (lwant) ) + &
+                                        st_input(i,lhave+1,1) * ( zso  (lwant  ) - zhave(lhave) ) ) / &
                                                                 ( zhave(lhave+1) - zhave(lhave) )
                   end do
                exit z_havet_2
@@ -96,17 +96,17 @@ contains
 
          zhave(1) = 0.
          do l = 1 , num_sm_levels_input
-            zhave(l+1) = sm_levels_input(l) / 100.
+            zhave(l+1) = zsi(l) 
          end do
          zhave(num_sm_levels_input+2) = 300. / 100.
 
       z_wantm_2 : do lwant = 1 , num_soil_layers
-         z_havem_2 : do lhave = 1 , num_sm_levels_input +2
-            if ( ( zs(lwant) .ge. zhave(lhave  ) ) .and. &
-                 ( zs(lwant) .le. zhave(lhave+1) ) ) then
+         z_havem_2 : do lhave = 1 , num_sm_levels_input +1
+            if ( ( zso(lwant) .ge. zhave(lhave  ) ) .and. &
+                 ( zso(lwant) .le. zhave(lhave+1) ) ) then
                   do i = 1 , im
-                     smois(i,lwant,1)= ( sm_input(i,lhave,1 ) * ( zhave(lhave+1) - zs   (lwant) ) + &
-                                         sm_input(i,lhave+1,1) * ( zs   (lwant  ) - zhave(lhave) ) ) / &
+                     smois(i,lwant,1)= ( sm_input(i,lhave,1 ) * ( zhave(lhave+1) - zso   (lwant) ) + &
+                                         sm_input(i,lhave+1,1) * ( zso   (lwant  ) - zhave(lhave) ) ) / &
                                                                  ( zhave(lhave+1) - zhave(lhave) )
                   end do
                exit z_havem_2

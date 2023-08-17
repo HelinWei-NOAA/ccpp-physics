@@ -86,12 +86,28 @@
   dimensions = ()
   type = integer
   intent = in
+[zsoil_input]
+  standard_name = depth_of_soil_layers_input
+  long_name = depth of soil levels for the input initial soil
+  units = m
+  dimensions = (vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
 [lsoil_lsm]
   standard_name = vertical_dimension_of_soil_internal_to_land_surface_scheme
   long_name = number of soil layers internal to land surface model
   units = count
   dimensions = ()
   type = integer
+  intent = in
+[zs]
+  standard_name = depth_of_soil_layers
+  long_name = depth of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
   intent = in
 [vegtype]
   standard_name = vegetation_type_classification
