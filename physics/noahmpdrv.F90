@@ -32,7 +32,7 @@
 !!
       subroutine noahmpdrv_init(im,lsm, lsm_noahmp, me, isot, ivegsrc, &
                                 nlunit, pores, resid,               &
-                                lsm_cold_start,lsoil,zsoil_input,lsoil_lsm,     &
+                                lsm_cold_start,lsoil,zsi,lsoil_lsm,     &
                                 zs,soiltyp,vegtype,                 &
                                 tskin,tg3,                          &
                                 smc,slc,stc,                        &
@@ -54,7 +54,7 @@
 
         logical,              intent(in) :: lsm_cold_start
         integer,              intent(in) :: lsoil, lsoil_lsm
-        real (kind=kind_phys), dimension(:), intent(in) :: zsoil_input,zs
+        real (kind=kind_phys), dimension(:), intent(in) :: zsi,zs
 
         integer,               dimension(:), intent(in) :: soiltyp
         integer,               dimension(:), intent(in) :: vegtype
@@ -98,11 +98,11 @@
         allocate (zsout(lsoil_lsm))
         allocate (dzsout(lsoil_lsm))
 
-         zsin(1)=zsoil_input(1)*0.5
-         dzsin(1)=zsoil_input(1)
+         zsin(1)=zsi(1)*-0.5
+         dzsin(1)=zsi(1)*-1.
         do n=2,lsoil
-         zsin(n)=zsoil_input(n-1)+0.5*(zsoil_input(n)-zsoil_input(n-1)) 
-         dzsin(n)=zsoil_input(n)-zsoil_input(n-1)
+         zsin(n)=(zsi(n-1)+0.5*(zsi(n)-zsi(n-1)))*-1. 
+         dzsin(n)=(zsi(n)-zsi(n-1))*-1.
         enddo
 
          zsout(1)=zs(1)*-0.5
@@ -1906,7 +1906,7 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
 
             tbot(i,1) = tg3(i)
             ivgtyp(i,1) = vtype(i)
-            isltyp(i,1) = stype(i)
+            isltyp(i,1) = max(1,stype(i))
             tsk(i,1) = tskin_lnd(i)
         enddo
 

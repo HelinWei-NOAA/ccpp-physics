@@ -86,7 +86,7 @@
   dimensions = ()
   type = integer
   intent = in
-[zsoil_input]
+[zsi]
   standard_name = depth_of_soil_layers_input
   long_name = depth of soil levels for the input initial soil
   units = m

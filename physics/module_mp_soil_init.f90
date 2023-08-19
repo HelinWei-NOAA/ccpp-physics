@@ -47,35 +47,35 @@ contains
             'no input soil level data (either temperature or moisture, or both are missing).'
       else
            if (debug_print) write(0, fmt='(a)') ' assume non-ruc lsm input'
-           allocate ( zhave( max(num_st_levels_input,num_soil_layers)  ) )
+           allocate ( zhave( max(num_st_levels_input+1,num_sm_levels_input+1)  ) )
       end if
       
 
          do i = 1 , im
-            st_input(i,1,1) = tsk(i,1)
-            st_input(i,num_st_levels_input+2,1) = tmn(i,1)
+!           st_input(i,1,1) = tsk(i,1)
+            st_input(i,num_st_levels_input+1,1) = tmn(i,1)
          end do
 
          do i = 1 , im
-            sm_input(i,1,1) = (sm_input(i,2,1)-sm_input(i,3,1))/   &
-                              (zsi(2)-zsi(1))*zsi(1)+  &
-                              sm_input(i,2,1)
-            sm_input(i,num_sm_levels_input+2,1) = sm_input(i,num_sm_levels_input+1,1)
+!           sm_input(i,1,1) = (sm_input(i,2,1)-sm_input(i,3,1))/   &
+!                             (zsi(2)-zsi(1))*zsi(1)+  &
+!                             sm_input(i,2,1)
+            sm_input(i,num_sm_levels_input+1,1) = sm_input(i,num_sm_levels_input,1)
          end do
 
-         zhave(1) = 0.
+!        zhave(1) = 0.
 
          DO l = 1 , num_st_levels_input
-            zhave(l+1) = zsi(l)
+            zhave(l) = zsi(l)
          END DO
 
-         zhave(num_st_levels_input+2) = 300. / 100.
+         zhave(num_st_levels_input+1) = zsi(num_st_levels_input)+1.
 
       !  interpolate between the layers we have (zhave) and those that we want
       !  (zs).
 
       z_wantt_2 : do lwant = 1 , num_soil_layers
-         z_havet_2 : do lhave = 1 , num_st_levels_input +1
+         z_havet_2 : do lhave = 1 , num_st_levels_input
             if ( ( zso(lwant) .ge. zhave(lhave  ) ) .and. &
                  ( zso(lwant) .le. zhave(lhave+1) ) ) then
                   do i = 1 , im
@@ -86,6 +86,16 @@ contains
                exit z_havet_2
             end if
          end do z_havet_2
+            if  ( zso(lwant) .lt. zhave(1) )then
+                  do i = 1 , im
+                     tslb(i,lwant,1)=st_input(i,1,1)
+                  enddo
+            endif
+            if  ( zso(lwant) .gt. zhave(num_st_levels_input+1) )then
+                  do i = 1 , im
+                     tslb(i,lwant,1)=st_input(i,num_st_levels_input+1,1)
+                  enddo
+            endif
       end do z_wantt_2
 
 
@@ -94,14 +104,13 @@ contains
            !  interpolate between the layers we have (zhave) and those that we
            !  want (zs).      
 
-         zhave(1) = 0.
          do l = 1 , num_sm_levels_input
-            zhave(l+1) = zsi(l) 
+            zhave(l) = zsi(l) 
          end do
-         zhave(num_sm_levels_input+2) = 300. / 100.
+         zhave(num_sm_levels_input+1) = zsi(num_sm_levels_input)+1.
 
       z_wantm_2 : do lwant = 1 , num_soil_layers
-         z_havem_2 : do lhave = 1 , num_sm_levels_input +1
+         z_havem_2 : do lhave = 1 , num_sm_levels_input
             if ( ( zso(lwant) .ge. zhave(lhave  ) ) .and. &
                  ( zso(lwant) .le. zhave(lhave+1) ) ) then
                   do i = 1 , im
@@ -112,6 +121,16 @@ contains
                exit z_havem_2
             end if
          end do z_havem_2
+            if  ( zso(lwant) .lt. zhave(1) )then
+                  do i = 1 , im
+                     smois(i,lwant,1)=sm_input(i,1,1)
+                  enddo
+            endif
+            if  ( zso(lwant) .gt. zhave(num_sm_levels_input+1) )then
+                  do i = 1 , im
+                     smois(i,lwant,1)=sm_input(i,num_sm_levels_input+1,1)
+                  enddo
+            endif
       end do z_wantm_2
 
       deallocate (zhave)
