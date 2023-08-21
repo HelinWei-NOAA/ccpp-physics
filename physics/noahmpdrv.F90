@@ -162,15 +162,15 @@
         pores (:) = smcmax_table (:)  ! Noah MP tables values used
         resid (:) = smcdry_table (:)
 
-        ! -- call to init 9-layer Noah MP soil layers from coldstart
+        ! -- call to init n-layer Noah MP soil layers from coldstart
 
-        if ( lsoil /= lsoil_lsm) then
+!       if ( lsoil /= lsoil_lsm) then
 
         call   noahmpsoilinit (lsm_cold_start, im, lsoil_lsm,lsoil,&
                        zsin,zsout,dzsout,tskin,tg3,smc,slc,stc,   &
                        sh2o,tslb,smois,soiltyp,vegtype,            &
                                 errmsg, errflg)
-        endif
+!       endif
 
 
       end subroutine noahmpdrv_init
@@ -2051,6 +2051,16 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
           sh2o(i,k)  = soilh2o(i,k,1)
         enddo 
       enddo
+!    for warm start
+      if (.not.lsm_cold_start) then
+       do i=1,im
+        do k = 1, lsoil_lsm
+          smois(i,k) = stc(i,k)
+          tslb(i,k)  = stc(i,k)
+          sh2o(i,k)  = slc(i,k)
+        enddo
+       enddo
+      endif
 
       end subroutine noahmpsoilinit
 
