@@ -492,6 +492,14 @@
   type = real
   kind = kind_phys
   intent = in
+[dzs]
+  standard_name = thickness_of_soil_layers_for_land_surface_model
+  long_name = thickness of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = in
 [idveg]
   standard_name = control_for_land_surface_scheme_dynamic_vegetation
   long_name = choice for dynamic vegetation option (see noahmp module for definition)
