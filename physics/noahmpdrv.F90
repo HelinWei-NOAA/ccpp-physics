@@ -2015,14 +2015,14 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
               soilm(i,k,1) = max(0.02,soilm(i,k,1)*smtotn(i,1)/(0.9*smtotr(i,1)))
             enddo
 
-            if( soilm(i,2,1) > soilm(i,1,1) .and. soilm(i,3,1) > soilm(i,2,1)) then
-            ! typical for daytime, no recent precip
-              factorsm(1) = 0.75
-              factorsm(2) = 0.8
-              factorsm(3) = 0.85
-              factorsm(4) = 0.9
-              factorsm(5) = 0.95
-            endif
+!           if( soilm(i,2,1) > soilm(i,1,1) .and. soilm(i,3,1) > soilm(i,2,1)) then
+!           ! typical for daytime, no recent precip
+!             factorsm(1) = 0.75
+!             factorsm(2) = 0.8
+!             factorsm(3) = 0.85
+!             factorsm(4) = 0.9
+!             factorsm(5) = 0.95
+!           endif
 
             do k=1,lsoil_lsm
                soilm(i,k,1) = factorsm(k) * soilm(i,k,1)
