@@ -1466,8 +1466,8 @@ do i = 1, im
         parameters%wrrat  =  wrrat_table(vegtype)       !wood to non-wood ratio
         parameters%wdpool = wdpool_table(vegtype)       !wood pool (switch 1 or 0) depending on woody or not [-]
         parameters%tdlef  =  tdlef_table(vegtype)       !characteristic t for leaf freezing [k]
-      
-        parameters%nroot  =  nroot_table(vegtype)       !number of soil layers with root present
+! scale nroot based on the number of soil layers (the table is for 4-layer)     
+        parameters%nroot  =  int(nroot_table(vegtype)*km/4.)  !number of soil layers with root present
         parameters%rgl    =    rgl_table(vegtype)       !parameter used in radiation stress function
         parameters%rsmin  =     rs_table(vegtype)       !minimum stomatal resistance [s m-1]
         parameters%hs     =     hs_table(vegtype)       !parameter used in vapor pressure deficit function
