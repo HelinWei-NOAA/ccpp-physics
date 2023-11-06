@@ -13,6 +13,7 @@
 
       use module_sf_noahmplsm
       use module_mp_soil_init
+      use module_soil_init
 
       implicit none
 
@@ -166,11 +167,28 @@
 
 !       if ( lsoil /= lsoil_lsm) then
 
-        call   noahmpsoilinit (lsm_cold_start, im, lsoil_lsm,lsoil,&
-                       zsin,zsout,dzsout,tskin,tg3,smc,slc,stc,   &
-                       sh2o,tslb,smois,soiltyp,vegtype,            &
-                                errmsg, errflg)
+!       call   noahmpsoilinit (lsm_cold_start, im, lsoil_lsm,lsoil,&
+!                      zsin,zsout,dzsout,tskin,tg3,smc,slc,stc,   &
+!                      sh2o,tslb,smois,soiltyp,vegtype,            &
+!                               errmsg, errflg)
 !       endif
+        if ( lsoil /= lsoil_lsm) then
+        call noahmp_soil_init (lsm_cold_start          , & ! in
+                       im                      , & ! in
+                       lsoil_lsm               , & ! in
+                       lsoil                   , & ! in
+                       zsin                    , & ! in
+                       zsout                   , & ! in
+                       smc                     , & ! in
+                       stc                     , & ! in
+                       soiltyp                 , & ! in
+                       smois                   , & ! out
+                       sh2o                    , & ! out
+                       tslb                    , & ! out
+                       errmsg                  , & ! out
+                       errflg                  )   ! out
+
+        endif
 
 
       end subroutine noahmpdrv_init
