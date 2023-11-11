@@ -173,8 +173,7 @@
 !                               errmsg, errflg)
 !       endif
         if ( lsoil /= lsoil_lsm) then
-        call noahmp_soil_init (lsm_cold_start          , & ! in
-                       im                      , & ! in
+        call noahmp_soil_init ( im                      , & ! in
                        lsoil_lsm               , & ! in
                        lsoil                   , & ! in
                        zsin                    , & ! in

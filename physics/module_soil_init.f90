@@ -4,8 +4,7 @@ use machine, only : kind_phys
 
 contains
 
-  subroutine noahmp_soil_init(lsm_cold_start          , & ! in
-                              im                      , & ! in
+  subroutine noahmp_soil_init(im                      , & ! in
                               lsoil_lsm               , & ! in
                               lsoil_input             , & ! in
                               soil_depth_input        , & ! in
@@ -24,7 +23,6 @@ contains
 
       implicit none
 
-      logical,                                          intent(in   ) :: lsm_cold_start
       integer,                                          intent(in   ) :: im
       integer,                                          intent(in   ) :: lsoil_lsm
       integer,                                          intent(in   ) :: lsoil_input
