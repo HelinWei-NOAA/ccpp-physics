@@ -12,7 +12,7 @@
       module noahmpdrv
 
       use module_sf_noahmplsm
-      use module_mp_soil_init
+#     use module_mp_soil_init
       use module_soil_init
 
       implicit none
