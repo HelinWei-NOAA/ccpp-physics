@@ -179,6 +179,7 @@
                        zsin                    , & ! in
                        zsout                   , & ! in
                        smc                     , & ! in
+                       slc                     , & ! in
                        stc                     , & ! in
                        soiltyp                 , & ! in
                        smois                   , & ! out

@@ -10,6 +10,7 @@ contains
                               soil_depth_input        , & ! in
                               soil_depth_output       , & ! in
                               soil_moisture_input     , & ! in
+                              soil_liquid_input       , & ! in
                               soil_temperature_input  , & ! in
                               soil_type               , & ! in
                               soil_moisture_output    , & ! out
@@ -29,6 +30,7 @@ contains
       real (kind=kind_phys), dimension(lsoil_input),    intent(in   ) :: soil_depth_input
       real (kind=kind_phys), dimension(lsoil_lsm),      intent(in   ) :: soil_depth_output
       real (kind=kind_phys), dimension(im,lsoil_input), intent(in   ) :: soil_moisture_input
+      real (kind=kind_phys), dimension(im,lsoil_input), intent(in   ) :: soil_liquid_input
       real (kind=kind_phys), dimension(im,lsoil_input), intent(in   ) :: soil_temperature_input
 
       integer,               dimension(im),             intent(in   ) :: soil_type
@@ -66,6 +68,7 @@ contains
       errmsg = ''
       errflg = 0
 
+      if(lsoil_lsm > lsoil_input)then
 ! interp_levels includes the top(0m) and bottom of the input soil column
 
       level_bottom_input(1) = 2.0 * soil_depth_input(1)
@@ -193,7 +196,20 @@ contains
         end if
       end do
       end do
-      
+     
+      else
+! no need to do any interpolation if lsoil_input=lsoil_lsm 
+
+      do iloc = 1 , im
+      do ilev = 1 , lsoil_lsm
+         soil_moisture_output(iloc,ilev) = soil_moisture_input(iloc,ilev)
+         soil_liquid_output(iloc,ilev) = soil_liquid_input(iloc,ilev) 
+         soil_temperature_output(iloc,ilev)= soil_temperature_input(iloc,ilev)
+      enddo
+      enddo
+
+      endif
+    
   end subroutine noahmp_soil_init
 
 end module module_soil_init
