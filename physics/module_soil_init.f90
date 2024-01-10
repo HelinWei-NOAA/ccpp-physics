@@ -54,7 +54,7 @@ contains
       real (kind=kind_phys), dimension(     lsoil_lsm)                :: level_wilting_point 
       real (kind=kind_phys), dimension(     lsoil_lsm)                :: level_water 
 
-      integer :: iloc, ilev, lhave, lwant
+      integer :: iloc, ilev, lhave, lwant,styp
       real (kind=kind_phys) :: porosity, bexp, psisat, soil_matric_potential
       real (kind=kind_phys) :: supercool_water, field_capacity, wilting_point
       
@@ -95,6 +95,7 @@ contains
                  ( soil_temperature_interp(iloc,lsoil_input-1) - soil_temperature_interp(iloc,lsoil_input) ) /  &
                     ( interp_levels(lsoil_input-1) - interp_levels(lsoil_input) )
 
+
         soil_moisture_interp(iloc,0) = soil_moisture_interp(iloc,1) + &
                  ( interp_levels(0) - interp_levels(1) ) * &
                  ( soil_moisture_interp(iloc,1) - soil_moisture_interp(iloc,2) ) /  &
@@ -114,7 +115,7 @@ contains
             soil_temperature_output(iloc,lwant) = soil_temperature_interp(iloc,lsoil_input+1)
             soil_moisture_output   (iloc,lwant) = soil_moisture_interp(iloc,lsoil_input+1)
           end do
-          exit level_want1
+!         exit level_want1
         end if
 
         level_have1 : do lhave = 0 , lsoil_input
@@ -135,6 +136,7 @@ contains
         end do level_have1
       end do level_want1
 
+
 ! Some arbitrary limits to temperature
 
       where(soil_temperature_output < 200.0) soil_temperature_output = 200.0
@@ -148,10 +150,11 @@ contains
       end do
       
       do iloc = 1 , im
-
-        wilting_point  = smcwlt_table(soil_type(iloc))
-        field_capacity = smcref_table(soil_type(iloc))
-        porosity       = smcmax_table(soil_type(iloc))
+        styp = soil_type(iloc)
+        if(styp .le. 0) styp = 16
+        wilting_point  = smcwlt_table(styp)
+        field_capacity = smcref_table(styp)
+        porosity       = smcmax_table(styp)
         level_wilting_point  = level_thickness_output * wilting_point   ! meters of water
         level_field_capacity = level_thickness_output * field_capacity
         level_porosity       = level_thickness_output * porosity
@@ -182,9 +185,11 @@ contains
 ! Initialize liquid soil moisture from total soil moisture and soil temperature using Niu and Yang (2006)
 
       do iloc = 1 , im
-        porosity = smcmax_table(soil_type(iloc))
-        bexp     = bexp_table(soil_type(iloc))
-        psisat   = psisat_table(soil_type(iloc))
+        styp = soil_type(iloc)
+        if(styp .le. 0) styp = 16
+        porosity = smcmax_table(styp)
+        bexp     = bexp_table(styp)
+        psisat   = psisat_table(styp)
       do ilev = 1 , lsoil_lsm
         if(soil_temperature_output(iloc,ilev) >= temperature_freezing) then
           soil_liquid_output(iloc,ilev) = soil_moisture_output(iloc,ilev)

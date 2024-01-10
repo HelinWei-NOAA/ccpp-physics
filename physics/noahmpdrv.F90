@@ -33,7 +33,7 @@
 !!
       subroutine noahmpdrv_init(im,lsm, lsm_noahmp, me, isot, ivegsrc, &
                                 nlunit, pores, resid,               &
-                                lsm_cold_start,lsoil,zsi,lsoil_lsm,     &
+                                lsoil,zsi,lsoil_lsm,                &
                                 zs,soiltyp,vegtype,                 &
                                 tskin,tg3,                          &
                                 smc,slc,stc,                        &
@@ -53,7 +53,6 @@
 
         real (kind=kind_phys), dimension(:), intent(out) :: pores, resid
 
-        logical,              intent(in) :: lsm_cold_start
         integer,              intent(in) :: lsoil, lsoil_lsm
         real (kind=kind_phys), dimension(:), intent(in) :: zsi,zs
 
@@ -165,13 +164,6 @@
 
         ! -- call to init n-layer Noah MP soil layers from coldstart
 
-!       if ( lsoil /= lsoil_lsm) then
-
-!       call   noahmpsoilinit (lsm_cold_start, im, lsoil_lsm,lsoil,&
-!                      zsin,zsout,dzsout,tskin,tg3,smc,slc,stc,   &
-!                      sh2o,tslb,smois,soiltyp,vegtype,            &
-!                               errmsg, errflg)
-!       endif
         if ( lsoil /= lsoil_lsm) then
         call noahmp_soil_init ( im                      , & ! in
                        lsoil_lsm               , & ! in
