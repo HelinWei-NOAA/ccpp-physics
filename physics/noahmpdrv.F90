@@ -35,7 +35,6 @@
                                 nlunit, pores, resid,               &
                                 lsoil,zsi,lsoil_lsm,                &
                                 zs,soiltyp,vegtype,                 &
-                                tskin,tg3,                          &
                                 smc,slc,stc,                        &
                                 smois,tslb,sh2o,                    & !out
                                 do_mynnsfclay,                      &
@@ -58,9 +57,6 @@
 
         integer,               dimension(:), intent(in) :: soiltyp
         integer,               dimension(:), intent(in) :: vegtype
-
-        real (kind=kind_phys), dimension(:), intent(in) :: tskin
-        real (kind=kind_phys), dimension(:), intent(in) :: tg3
 
         real (kind=kind_phys), dimension(:,:), intent(in) :: smc
         real (kind=kind_phys), dimension(:,:), intent(in) :: slc
