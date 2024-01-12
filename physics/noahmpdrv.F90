@@ -160,7 +160,6 @@
 
         ! -- call to init n-layer Noah MP soil layers from coldstart
 
-        if ( lsoil /= lsoil_lsm) then
         call noahmp_soil_init ( im                      , & ! in
                        lsoil_lsm               , & ! in
                        lsoil                   , & ! in
@@ -175,8 +174,6 @@
                        tslb                    , & ! out
                        errmsg                  , & ! out
                        errflg                  )   ! out
-
-        endif
 
 
       end subroutine noahmpdrv_init
