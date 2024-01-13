@@ -1,7 +1,7 @@
 [ccpp-table-properties]
   name = noahmpdrv
   type = scheme
-  dependencies = funcphys.f90,machine.F,sfc_diff.f,module_mp_soil_init.f90,module_sf_noahmp_glacier.F90,module_sf_noahmplsm.F90,noahmp_tables.f90,set_soilveg.f
+  dependencies = funcphys.f90,machine.F,sfc_diff.f,module_mp_soil_init.f90,module_soil_init.f90,module_sf_noahmp_glacier.F90,module_sf_noahmplsm.F90,noahmp_tables.f90,set_soilveg.f
 
 ########################################################################
 [ccpp-arg-table]
@@ -72,13 +72,6 @@
   type = real
   intent = out
   kind = kind_phys
-[lsm_cold_start]
-  standard_name = do_lsm_cold_start
-  long_name = flag to signify LSM is cold-started
-  units = flag
-  dimensions = ()
-  type = logical
-  intent = in
 [lsoil]
   standard_name = vertical_dimension_of_soil
   long_name = soil vertical layer dimension
@@ -86,12 +79,28 @@
   dimensions = ()
   type = integer
   intent = in
+[zsi]
+  standard_name = depth_of_soil_layers_input
+  long_name = depth of soil levels for the input initial soil
+  units = m
+  dimensions = (vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
 [lsoil_lsm]
   standard_name = vertical_dimension_of_soil_internal_to_land_surface_scheme
   long_name = number of soil layers internal to land surface model
   units = count
   dimensions = ()
   type = integer
+  intent = in
+[zs]
+  standard_name = depth_of_soil_layers
+  long_name = depth of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
   intent = in
 [vegtype]
   standard_name = vegetation_type_classification
@@ -107,22 +116,6 @@
   dimensions = (horizontal_dimension)
   type = integer
   intent= in
-[tskin]
-  standard_name = surface_skin_temperature_over_land
-  long_name = surface skin temperature over land
-  units = K
-  dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
-  intent = in
-[tg3]
-  standard_name = deep_soil_temperature
-  long_name = deep soil temperature
-  units = K
-  dimensions = (horizontal_dimension)
-  type = real
-  kind = kind_phys
-  intent = in
 [smc]
   standard_name = volume_fraction_of_condensed_water_in_soil
   long_name = volumetric fraction of soil moisture
@@ -465,6 +458,22 @@
   long_name = gravitational acceleration
   units = m s-2
   dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+[zs]
+  standard_name = depth_of_soil_layers
+  long_name = depth of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = in
+[dzs]
+  standard_name = thickness_of_soil_layers_for_land_surface_model
+  long_name = thickness of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = in

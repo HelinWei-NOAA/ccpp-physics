@@ -12,7 +12,8 @@
       module noahmpdrv
 
       use module_sf_noahmplsm
-      use module_mp_soil_init
+!     use module_mp_soil_init
+      use module_soil_init
 
       implicit none
 
@@ -32,9 +33,8 @@
 !!
       subroutine noahmpdrv_init(im,lsm, lsm_noahmp, me, isot, ivegsrc, &
                                 nlunit, pores, resid,               &
-                                lsm_cold_start,lsoil,lsoil_lsm,     &
-                                soiltyp,vegtype,                    &
-                                tskin,tg3,                          &
+                                lsoil,zsi,lsoil_lsm,                &
+                                zs,soiltyp,vegtype,                 &
                                 smc,slc,stc,                        &
                                 smois,tslb,sh2o,                    & !out
                                 do_mynnsfclay,                      &
@@ -52,14 +52,11 @@
 
         real (kind=kind_phys), dimension(:), intent(out) :: pores, resid
 
-        logical,              intent(in) :: lsm_cold_start
         integer,              intent(in) :: lsoil, lsoil_lsm
+        real (kind=kind_phys), dimension(:), intent(in) :: zsi,zs
 
         integer,               dimension(:), intent(in) :: soiltyp
         integer,               dimension(:), intent(in) :: vegtype
-
-        real (kind=kind_phys), dimension(:), intent(in) :: tskin
-        real (kind=kind_phys), dimension(:), intent(in) :: tg3
 
         real (kind=kind_phys), dimension(:,:), intent(in) :: smc
         real (kind=kind_phys), dimension(:,:), intent(in) :: slc
@@ -76,23 +73,45 @@
         character(len=*),     intent(out) :: errmsg
         integer,              intent(out) :: errflg
 
-        real(kind=kind_phys), save  :: zsin(4),zlvlin(4),dzsin(4)
-        real(kind=kind_phys), save  :: zsout(9),zlvlout(9),dzsout(9)
+!       real(kind=kind_phys), save  :: zsin(4),zlvlin(4),dzsin(4)
+!       real(kind=kind_phys), save  :: zsout(9),zlvlout(9),dzsout(9)
+        real(kind=kind_phys), pointer  :: zsin(:),dzsin(:)
+        real(kind=kind_phys), pointer  :: zsout(:),dzsout(:)
+        integer n
 
 ! --    for zsin to zsout interpolation - hard wired from 4 -> 9 levels for now
 
-        data zsin  / 0.05, 0.25, 0.70, 1.50 /   ! Input Noah mid-levels for interpolation
-        data zlvlin  / 0.10, 0.40, 1.00, 2.00 / ! Noah layer bottom interface levels
-        data dzsin /0.10, 0.30,0.6, 1.0 /       ! Noah layer thickness
+!       data zsin  / 0.05, 0.25, 0.70, 1.50 /   ! Input Noah mid-levels for interpolation
+!       data zlvlin  / 0.10, 0.40, 1.00, 2.00 / ! Noah layer bottom interface levels
+!       data dzsin /0.10, 0.30,0.6, 1.0 /       ! Noah layer thickness
 
-        data zsout /0.01,0.04,0.10,0.30,0.60, 1.00,1.60, 3.00,4.56 /         !  Noah MP mid-level calculation - one more bottom
-        data zlvlout  /0.02, 0.06, 0.14, 0.46, 0.74, 1.26, 1.94, 4.06,5.06 / !  Noah MP equiv. levels - interface
-        data dzsout  / 0.02,0.04,0.08,0.32,0.28,0.52,0.68,2.12,1.00 /        !  Noah MP thickness 
+!       data zsout /0.01,0.04,0.10,0.30,0.60, 1.00,1.60, 3.00,4.56 /         !  Noah MP mid-level calculation - one more bottom
+!       data zlvlout  /0.02, 0.06, 0.14, 0.46, 0.74, 1.26, 1.94, 4.06,5.06 / !  Noah MP equiv. levels - interface
+!       data dzsout  / 0.02,0.04,0.08,0.32,0.28,0.52,0.68,2.12,1.00 /        !  Noah MP thickness 
 
+        allocate (zsin(lsoil))
+        allocate (dzsin(lsoil))
+        allocate (zsout(lsoil_lsm))
+        allocate (dzsout(lsoil_lsm))
 
+         zsin(1)=zsi(1)*-0.5
+         dzsin(1)=zsi(1)*-1.
+        do n=2,lsoil
+         zsin(n)=(zsi(n-1)+0.5*(zsi(n)-zsi(n-1)))*-1. 
+         dzsin(n)=(zsi(n)-zsi(n-1))*-1.
+        enddo
+
+         zsout(1)=zs(1)*-0.5
+         dzsout(1)=zs(1)*-1.
+        do n=2,lsoil_lsm
+         zsout(n)=(zs(n-1)+0.5*(zs(n)-zs(n-1)))*-1. 
+         dzsout(n)=(zs(n)-zs(n-1))*-1.
+        enddo
+         
         ! Initialize CCPP error handling variables
         errmsg = ''
         errflg = 0
+
 
         ! Consistency checks
         if (lsm/=lsm_noahmp) then
@@ -102,12 +121,12 @@
           return
         end if
 
-        if (lsoil_lsm /= 9) then
-          errmsg = 'This version of NOAHMP LSM expects # of soil layers is 9 '// &
-                   'namelist parameter is not 9. Exiting...'
-          errflg = 1
-          return
-        end if
+!       if (lsoil_lsm /= 9) then
+!         errmsg = 'This version of NOAHMP LSM expects # of soil layers is 9 '// &
+!                  'namelist parameter is not 9. Exiting...'
+!         errflg = 1
+!         return
+!       end if
 
         if (ivegsrc /= 1) then
           errmsg = 'The NOAHMP LSM expects that the ivegsrc physics '// &
@@ -139,15 +158,22 @@
         pores (:) = smcmax_table (:)  ! Noah MP tables values used
         resid (:) = smcdry_table (:)
 
-        ! -- call to init 9-layer Noah MP soil layers from coldstart
+        ! -- call to init n-layer Noah MP soil layers from coldstart
 
-        if ( lsoil /= lsoil_lsm) then
-
-        call   noahmpsoilinit (lsm_cold_start, im, lsoil_lsm,lsoil,&
-                       zsout,dzsout,tskin,tg3,smc,slc,stc,         &
-                       sh2o,tslb,smois,soiltyp,vegtype,            &
-                                errmsg, errflg)
-        endif
+        call noahmp_soil_init ( im                      , & ! in
+                       lsoil_lsm               , & ! in
+                       lsoil                   , & ! in
+                       zsin                    , & ! in
+                       zsout                   , & ! in
+                       smc                     , & ! in
+                       slc                     , & ! in
+                       stc                     , & ! in
+                       soiltyp                 , & ! in
+                       smois                   , & ! out
+                       sh2o                    , & ! out
+                       tslb                    , & ! out
+                       errmsg                  , & ! out
+                       errflg                  )   ! out
 
 
       end subroutine noahmpdrv_init
@@ -179,7 +205,7 @@
     ( im, km, lsnowl, itime, ps, u1, v1, t1, q1, soiltyp,soilcol,&
       vegtype, sigmaf, dlwflx, dswsfc, snet, delt, tg3, cm, ch,  &
       prsl1, prslk1, prslki, prsik1, zf,pblh, dry, wind, slopetyp,&
-      shdmin, shdmax, snoalb, sfalb, flag_iter,con_g,            &
+      shdmin, shdmax, snoalb, sfalb, flag_iter,con_g,zs,dzs,      &
       idveg, iopt_crs, iopt_btr, iopt_run, iopt_sfc, iopt_frz,   &
       iopt_inf, iopt_rad, iopt_alb, iopt_snf, iopt_tbot,iopt_stc,&
       iopt_trs,iopt_diag,xlatin, xcoszin, iyrlen, julian, garea, &
@@ -263,16 +289,18 @@
   real(kind=kind_phys), parameter  :: a4      = 35.86
   real(kind=kind_phys), parameter  :: a23m4   = a2*(a3-a4)
   real(kind=kind_phys), intent(in) :: con_g 
+  real(kind=kind_phys), dimension(:)     , intent(in)    :: zs     ! depth of soil levels for land surface model
+  real(kind=kind_phys), dimension(:)     , intent(in)    :: dzs    ! thickness of soil levels for land surface model
       
   real, parameter                  :: undefined  =  9.99e20_kind_phys
 
-  integer, parameter               :: nsoil   = 9   ! hardwired to lsoil_lsm for now
+! integer, parameter               :: nsoil   = 9   ! hardwired to lsoil_lsm for now
   integer, parameter               :: nsnow   = 3   ! max. snow layers
 
   integer, parameter               :: iz0tlnd = 0   ! z0t treatment option
 
-  real(kind=kind_phys), save  :: zsoil(nsoil)
-  data zsoil  / -0.02, -0.06, -0.14, -0.46, -0.74, -1.26, -1.94, -4.06, -5.06 /
+! real(kind=kind_phys), save  :: zsoil(nsoil)
+! data zsoil  / -0.02, -0.06, -0.14, -0.46, -0.74, -1.26, -1.94, -4.06, -5.06 /
 
 !
 !  ---  CCPP interface fields (in call order)
@@ -501,7 +529,7 @@
   integer    :: iopt_pedo = 1 ! option for pedotransfer function
   integer    :: iopt_crop = 0 ! option for crop model
   integer    :: iopt_gla  = 2 ! option for glacier treatment
-  integer    :: iopt_z0m  = 2 ! option for z0m treatment
+  integer    :: iopt_z0m  = 1 ! option for z0m treatment
 
 !
 !  ---  local inputs to noah-mp and glacier subroutines; listed in order in noah-mp call
@@ -517,7 +545,7 @@
   real (kind=kind_phys)                            :: spatial_scale         ! in    | spatial scale [m] (not used in noah-mp)
   real (kind=kind_phys)                            :: atmosphere_thickness  ! in    | thickness of lowest atmo layer [m] (not used in noah-mp)
   integer                                          :: soil_levels           ! in    | soil levels
-  real (kind=kind_phys), dimension(       1:nsoil) :: soil_interface_depth  ! in    | soil layer-bottom depth from surface [m]
+  real (kind=kind_phys), dimension(       1:km) :: soil_interface_depth  ! in    | soil layer-bottom depth from surface [m]
   integer                                          :: max_snow_levels       ! in    | maximum number of snow levels
   real (kind=kind_phys)                            :: vegetation_frac       ! in    | vegetation fraction [0.0-1.0]
   real (kind=kind_phys)                            :: area_grid             ! in    | 
@@ -526,7 +554,7 @@
   integer                                          :: ice_flag              ! in    | ice flag (1->ice)
   integer                                          :: surface_type          ! in    | surface type flag 1->soil; 2->lake
   integer                                          :: crop_type             ! in    | crop type category
-  real (kind=kind_phys), dimension(       1:nsoil) :: eq_soil_water_vol     ! in    | (opt_run=5) equilibrium soil water content [m3/m3]
+  real (kind=kind_phys), dimension(       1:km) :: eq_soil_water_vol     ! in    | (opt_run=5) equilibrium soil water content [m3/m3]
   real (kind=kind_phys)                            :: temperature_forcing   ! in    | forcing air temperature [K]
   real (kind=kind_phys)                            :: air_pressure_surface  ! in    | surface air pressure [Pa]
   real (kind=kind_phys)                            :: air_pressure_forcing  ! in    | forcing air pressure [Pa]
@@ -551,9 +579,9 @@
   real (kind=kind_phys)                            :: forcing_height        ! inout | forcing height [m]
   real (kind=kind_phys)                            :: snow_albedo_old       ! inout | snow albedo at last time step (class option) [-]
   real (kind=kind_phys)                            :: snow_water_equiv_old  ! inout | snow water equivalent at last time step [mm]
-  real (kind=kind_phys), dimension(-nsnow+1:nsoil) :: temperature_snow_soil ! inout | snow/soil temperature [K]
-  real (kind=kind_phys), dimension(       1:nsoil) :: soil_liquid_vol       ! inout | volumetric liquid soil moisture [m3/m3]
-  real (kind=kind_phys), dimension(       1:nsoil) :: soil_moisture_vol     ! inout | volumetric soil moisture (ice + liq.) [m3/m3]
+  real (kind=kind_phys), dimension(-nsnow+1:km) :: temperature_snow_soil ! inout | snow/soil temperature [K]
+  real (kind=kind_phys), dimension(       1:km) :: soil_liquid_vol       ! inout | volumetric liquid soil moisture [m3/m3]
+  real (kind=kind_phys), dimension(       1:km) :: soil_moisture_vol     ! inout | volumetric soil moisture (ice + liq.) [m3/m3]
 
   real (kind=kind_phys)                            :: surface_temperature   !  out  | surface aerodynamic temp
 
@@ -568,7 +596,7 @@
   real (kind=kind_phys)                            :: snowfall              ! inout | land model partitioned snowfall [mm/s]
   real (kind=kind_phys)                            :: rainfall              ! inout | land model partitioned rainfall [mm/s]
   integer                                          :: snow_levels           ! inout | active snow levels [-]
-  real (kind=kind_phys), dimension(-nsnow+1:nsoil) :: interface_depth       ! inout | layer-bottom depth from snow surf [m]
+  real (kind=kind_phys), dimension(-nsnow+1:km) :: interface_depth       ! inout | layer-bottom depth from snow surf [m]
   real (kind=kind_phys)                            :: snow_depth            ! inout | snow depth [m]
   real (kind=kind_phys)                            :: snow_water_equiv      ! inout | snow water equivalent [mm]
   real (kind=kind_phys), dimension(-nsnow+1:    0) :: snow_level_ice        ! inout | snow level ice [mm]
@@ -692,7 +720,7 @@
 !  ---  local variable
 !
 
-  integer :: soil_category(nsoil)
+  integer :: soil_category(km)
   integer :: slope_category
   integer :: soil_color_category
   character(len=256)                     :: dataset_identifier
@@ -765,7 +793,7 @@ do i = 1, im
       spatial_scale         = -9999.0
       atmosphere_thickness  = -9999.0
       soil_levels           = km
-      soil_interface_depth  = zsoil
+      soil_interface_depth  = zs
       max_snow_levels       = nsnow
       vegetation_frac       = sigmaf(i)
       max_vegetation_frac   = shdmax(i)
@@ -893,7 +921,7 @@ do i = 1, im
 !     soil_color_category = 4
 
 
-      call transfer_mp_parameters(vegetation_category, soil_category, &
+      call transfer_mp_parameters(km,vegetation_category, soil_category, &
                         slope_category, soil_color_category, crop_type,parameters)
       parameters%prcpiceden = rhonewsn1(i)
       call noahmp_options(idveg ,iopt_crs, iopt_btr , iopt_run, iopt_sfc,  &
@@ -918,10 +946,10 @@ do i = 1, im
         vegetation_frac = 0.0
         call noahmp_glacier (                                                                      &
           i_location           ,1                    ,cosine_zenith        ,nsnow                , &
-          nsoil                ,timestep             ,                                             &
+          km                ,timestep             ,                                                &
           temperature_forcing  ,air_pressure_forcing ,uwind_forcing        ,vwind_forcing        , &
           spec_humidity_forcing,sw_radiation_forcing ,precipitation_forcing,radiation_lw_forcing , &
-          temperature_soil_bot ,forcing_height       ,snow_ice_frac_old    ,zsoil                , &
+          temperature_soil_bot ,forcing_height       ,snow_ice_frac_old    ,zs                   , &
           thsfc_loc            ,prslkix              ,prsik1x              ,prslk1x              , &
           air_pressure_surface ,pblhx                ,iz0tlnd              ,itime                , &
 	  vegetation_frac      ,area_grid            ,psi_opt                                    , &
@@ -1203,15 +1231,20 @@ do i = 1, im
       rechxy    (i)   = recharge           ! only need for run=5
       smoiseq   (i,:) = eq_soil_water_vol  ! only need for run=5; listed as in
 
-      stm      (i)  = (0.02*soil_moisture_vol(1) + &
-                       0.04*soil_moisture_vol(2) + &
-                       0.08*soil_moisture_vol(3) + &
-                       0.32*soil_moisture_vol(4) + &
-                       0.28*soil_moisture_vol(5) + &
-                       0.52*soil_moisture_vol(6) + &
-                       0.68*soil_moisture_vol(7) + &
-                       2.12*soil_moisture_vol(8) + &
-                       1.00*soil_moisture_vol(9))*1000.0
+       stm(i)=0.0
+      do k=1,km
+       stm(i) = stm(i) + dzs(k)*soil_moisture_vol(k)
+      enddo
+       stm(i)=stm(i)*1000.0
+!     stm      (i)  = (0.02*soil_moisture_vol(1) + &
+!                      0.04*soil_moisture_vol(2) + &
+!                      0.08*soil_moisture_vol(3) + &
+!                      0.32*soil_moisture_vol(4) + &
+!                      0.28*soil_moisture_vol(5) + &
+!                      0.52*soil_moisture_vol(6) + &
+!                      0.68*soil_moisture_vol(7) + &
+!                      2.12*soil_moisture_vol(8) + &
+!                      1.00*soil_moisture_vol(9))*1000.0
 
       wet1   (i) = soil_moisture_vol(1) /  smcmax_table(soil_category(1))
       smcwlt2(i) = smcdry_table(soil_category(1))   !!!change to wilt?
@@ -1347,7 +1380,7 @@ do i = 1, im
 !> \ingroup NoahMP_LSM
 !! \brief This subroutine fills in a derived data type of type noahmp_parameters with data
 !! from the module \ref noahmp_tables.
-      subroutine transfer_mp_parameters (vegtype,soiltype,slopetype,    &
+      subroutine transfer_mp_parameters (km,vegtype,soiltype,slopetype,    &
                                        soilcolor,croptype,parameters)
      
         use noahmp_tables
@@ -1355,8 +1388,9 @@ do i = 1, im
       
         implicit none
       
+        integer, intent(in)    :: km         ! vertical soil layer dimension
         integer, intent(in)    :: vegtype
-        integer, intent(in)    :: soiltype(9)
+        integer, intent(in)    :: soiltype(km)
         integer, intent(in)    :: slopetype
         integer, intent(in)    :: soilcolor
         integer, intent(in)    :: croptype
@@ -1435,8 +1469,8 @@ do i = 1, im
         parameters%wrrat  =  wrrat_table(vegtype)       !wood to non-wood ratio
         parameters%wdpool = wdpool_table(vegtype)       !wood pool (switch 1 or 0) depending on woody or not [-]
         parameters%tdlef  =  tdlef_table(vegtype)       !characteristic t for leaf freezing [k]
-      
-        parameters%nroot  =  nroot_table(vegtype)       !number of soil layers with root present
+! scale nroot based on the number of soil layers (the table is for 4-layer)     
+        parameters%nroot  =  int(nroot_table(vegtype)*km/4.)  !number of soil layers with root present
         parameters%rgl    =    rgl_table(vegtype)       !parameter used in radiation stress function
         parameters%rsmin  =     rs_table(vegtype)       !minimum stomatal resistance [s m-1]
         parameters%hs     =     hs_table(vegtype)       !parameter used in vapor pressure deficit function
@@ -1778,250 +1812,5 @@ SUBROUTINE PEDOTRANSFER_SR2006(nsoil,sand,clay,orgm,parameters)
 
 ! ----------------------------------------------------------------------
       end subroutine penman
-
-      subroutine noahmpsoilinit (lsm_cold_start, im, lsoil_lsm, lsoil,    & ! in
-                                 zs, dzs,tskin_lnd,tg3, smc, slc, stc,    & ! in
-                                 sh2o,tslb, smois, stype, vtype,          & ! in
-                                 errmsg, errflg)
-
-      use namelist_soilveg
-      use noahmp_tables, only:smcref_table,smcdry_table
-
-      implicit none
-
-      logical,                                        intent(in   ) :: lsm_cold_start
-      integer,                                        intent(in   ) :: im, lsoil
-      integer,                                        intent(in   ) :: lsoil_lsm
-      real (kind=kind_phys), dimension(im),           intent(in   ) :: tskin_lnd
-      real (kind=kind_phys), dimension(im),           intent(in   ) :: tg3
-      real (kind=kind_phys), dimension(1:lsoil_lsm),  intent(in   ) :: zs
-      real (kind=kind_phys), dimension(1:lsoil_lsm),  intent(in   ) :: dzs
-      real (kind=kind_phys), dimension(im,lsoil),     intent(in   ) :: smc !  Noah
-      real (kind=kind_phys), dimension(im,lsoil),     intent(in   ) :: stc !  Noah
-      real (kind=kind_phys), dimension(im,lsoil),     intent(in   ) :: slc !  Noah
-
-      integer,               dimension(im),    intent(in) :: stype, vtype
-
-      real (kind=kind_phys), dimension(im,lsoil_lsm), intent(inout) :: smois! lsoil_lsm
-      real (kind=kind_phys), dimension(im,lsoil_lsm), intent(inout) :: tslb ! lsoil_lsm
-      real (kind=kind_phys), dimension(im,lsoil_lsm), intent(inout) :: sh2o ! lsoil_lsm
-
-      character(len=*), intent(out) :: errmsg
-      integer,          intent(out) :: errflg
-
-!> local
-
-      logical :: debug_print
-      logical :: smadj    ! for soil mosture adjustment
-      logical :: swi_init ! for initialization in terms of SWI (soil wetness index)
-
-      real (kind=kind_phys),    dimension(1:lsoil_lsm)  :: factorsm
-      real (kind=kind_phys),    dimension(im)           :: smcref2
-      real (kind=kind_phys),    dimension(im)           :: smcwlt2
-
-      integer,   parameter :: slcats = 30
-      real                 :: refsmc1,wltsmc1
-      real                 :: REFSMCnoah(slcats),WLTSMCnoah(slcats)
-
-
-      integer , dimension( 1:im , 1:1 )      :: ivgtyp
-      integer , dimension( 1:im , 1:1)       :: isltyp
-      real (kind=kind_phys),    dimension( 1:im , 1:1 )       :: tsk
-      real (kind=kind_phys),    dimension( 1:im , 1:1 )       :: tbot
-      real (kind=kind_phys),    dimension( 1:im , 1:1 )       :: smtotn
-      real (kind=kind_phys),    dimension( 1:im , 1:1 )       :: smtotr
-      real (kind=kind_phys),    dimension( 1:im , 1:lsoil_lsm, 1:1 ) :: dumsm 
-      real (kind=kind_phys),    dimension( 1:im , 1:lsoil_lsm, 1:1 ) :: dumt
-!     real (kind=kind_phys),    dimension( 1:im , 1:lsoil_lsm, 1:1 ) :: smfr
-      real (kind=kind_phys),    dimension( 1:im , 1:lsoil_lsm, 1:1 ) :: soilm
-      real (kind=kind_phys),    dimension( 1:im , 1:lsoil_lsm, 1:1 ) :: soiltemp
-      real (kind=kind_phys),    dimension( 1:im , 1:lsoil_lsm, 1:1 ) :: soilh2o
-
-      real (kind=kind_phys) :: st_input(1:im,1:lsoil_lsm*3,1:1)
-      real (kind=kind_phys) :: sm_input(1:im,1:lsoil_lsm*3,1:1)
-
-      integer,              dimension(1:lsoil)  :: st_levels_input ! 4 - for Noah lsm
-      integer,              dimension(1:lsoil)  :: sm_levels_input ! 4 - for Noah lsm
-
-      integer :: i,j,k,l,ii,jj,num_soil_layers
-
-
-      ! Initialize the CCPP error handling variables
-
-          errmsg = ''
-          errflg = 0
-
-          num_soil_layers =  lsoil ! 4 - hard-wired for cold start from Noah lsm for now
-          debug_print = .false.
-
-          st_levels_input = (/ 5, 25, 70, 150/)    ! Noah centers of soil layers
-          sm_levels_input = (/ 5, 25, 70, 150/)    ! Noah centers of soil layers
-
-      if (lsm_cold_start) then     !need to change if warm start
-
-          smadj = .true.
-          swi_init = .true.
-
-        if (lsoil /= 4 ) then
-         write (0,*)'lsoil, lsoil =',lsoil
-          errflg = 1
-          return
-        endif
-
-
-      if(debug_print) then
-         write (0,*)'lsm_cold_start = ',lsm_cold_start
-         write (0,*)'lsoil, lsoil_lsm =',lsoil, lsoil_lsm
-      endif
-
-      endif  !cold start
-
-
-        do i=1,im ! i = horizontal loop; extra dimension index?
-
-            tbot(i,1) = tg3(i)
-            ivgtyp(i,1) = vtype(i)
-            isltyp(i,1) = stype(i)
-            tsk(i,1) = tskin_lnd(i)
-        enddo
-
-      ! Noah lsm input
-          print*,'maxsmc=',MAXSMC,'smcref_table=',smcref_table
-
-         do i = 1,slcats
-
-           if (SATDK(i) /= 0.0 .and. BB(i) > 0.0) then
-
-           REFSMC1   = MAXSMC(I)*(5.79E-9/SATDK(I))  &
-                        **(1.0/(2.0*BB(I)+3.0))
-           REFSMCnoah(I) = REFSMC1 + (MAXSMC(I)-REFSMC1) / 6.
-           WLTSMC1   = MAXSMC(I) *                       &
-           (200.0/SATPSI(I))**(-1.0/BB(I))
-           WLTSMCnoah(I) = WLTSMC1 - 0.5 * WLTSMC1
-
-           endif
-         end do
-
-
-        do i=1,im ! i = horizontal loop
-
-          st_input(i,1,1)=tsk(i,1)
-          sm_input(i,1,1)=0.
-
-          !--- initialize smcwlt2 and smcref2 using Noah values
-            ii=stype(i)
-            if(ii.le.1)ii=1
-            smcref2 (i) = refsmcNoah(ii)
-            smcwlt2 (i) = wltsmcNoah(ii)
-
-          do k=1,lsoil
-             st_input(i,k+1,1)=stc(i,k)
-             ! convert volumetric soil moisture to SWI (soil wetness index)
-             if( swi_init) then
-               sm_input(i,k+1,1)=min(1.,max(0.,(smc(i,k) - smcwlt2(i))/  &
-                                 (smcref2(i) - smcwlt2(i))))
-             endif
-          enddo
-
-          do k=lsoil+2,lsoil_lsm * 3
-             st_input(i,k,1)=0.
-             sm_input(i,k,1)=0.
-          enddo
-
-        enddo ! i - horizontal loop
-
-        CALL init_soil_3_mp ( im, tsk , tbot , dumsm , dumt ,           &
-                                st_input , sm_input ,                   &
-                                zs , dzs ,                              &
-                                st_levels_input, sm_levels_input,       &
-                                lsoil_lsm , num_soil_layers,            &
-                                num_soil_layers,                        &
-                                lsoil_lsm * 3 , lsoil_lsm * 3)
-
-        do i=1,im
-           do k=1,lsoil_lsm
-           ! convert from SWI to Noah MP volumetric soil moisture
-             if(swi_init) then
-               soilm(i,k,1) = dumsm(i,k,1) *                            &
-                 (smcref_table(isltyp(i,1))-smcdry_table(isltyp(i,1)))  &
-                 + smcdry_table(isltyp(i,1))
-             endif
-             soiltemp(i,k,1) = dumt(i,k,1)
-           enddo ! k
-        enddo ! im loop
-
-        ! smadj should be true when the Noah LSM is used
-
-        if( smadj ) then
-
-        ! With other LSMs as input, or when RUC soil moisture is cycled, it
-        ! should be set to .false.
-
-          do i=1,im
-
-            ! initialize factor
-
-            do k=1,lsoil_lsm
-               factorsm(k)=1.
-            enddo
-
-            ! Noah MP soil moisture bucket
-
-            smtotr(i,1)=0.
-
-            do k=1,lsoil_lsm -1
-              smtotr(i,1)=smtotr(i,1) + soilm(i,k,1) *dzs(k)
-            enddo
-
-            ! Noah soil moisture bucket 
-
-!           smtotn(i,1)=smc(i,1)*0.1 + smc(i,2)*0.2 + smc(i,3)*0.7 + smc(i,4)*1.
-            smtotn(i,1)=smc(i,1)*0.1 + smc(i,2)*0.3 + smc(i,3)*0.6 + smc(i,4)*1. ! the depths of 2 and 3 are corrected
-
-
-            ! Noah MP soil moisture correction to match Noah soil moisture bucket
-
-            do k=1,lsoil_lsm-1
-              soilm(i,k,1) = max(0.02,soilm(i,k,1)*smtotn(i,1)/(0.9*smtotr(i,1)))
-            enddo
-
-            if( soilm(i,2,1) > soilm(i,1,1) .and. soilm(i,3,1) > soilm(i,2,1)) then
-            ! typical for daytime, no recent precip
-              factorsm(1) = 0.75
-              factorsm(2) = 0.8
-              factorsm(3) = 0.85
-              factorsm(4) = 0.9
-              factorsm(5) = 0.95
-            endif
-
-            do k=1,lsoil_lsm
-               soilm(i,k,1) = factorsm(k) * soilm(i,k,1)
-            enddo
-
-               smtotr(i,1) = 0.
-
-            do k=1,lsoil_lsm - 1
-               smtotr(i,1)=smtotr(i,1) + soilm(i,k,1) *dzs(k)
-            enddo
-
-          enddo ! i loop
-
-        endif ! smadj==.true.
-
-      ! Initialize liquid soil moisture from total soil moisture
-      ! and soil temperature
-
-      call initslc(im,lsoil_lsm, isltyp, ivgtyp,               &
-                 soilh2o, soiltemp, soilm)
-
-      do i=1,im
-        do k = 1, lsoil_lsm
-          smois(i,k) = soilm(i,k,1)
-          tslb(i,k)  = soiltemp(i,k,1)
-          sh2o(i,k)  = soilh2o(i,k,1)
-        enddo 
-      enddo
-
-      end subroutine noahmpsoilinit
 
       end module noahmpdrv
