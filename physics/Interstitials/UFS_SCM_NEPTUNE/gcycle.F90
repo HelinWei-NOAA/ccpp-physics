@@ -21,7 +21,7 @@ contains
       frac_grid, smc, slc, stc, smois, sh2o, tslb, tiice, tg3, tref, tsfc,         &
       tsfco, tisfc, hice, fice, facsf, facwf, alvsf, alvwf, alnsf, alnwf,          &
       zorli, zorll, zorlo, weasd, slope, snoalb, canopy, vfrac, vtype,             &
-      stype, scolor,leaf_area_index, shdmin, shdmax, snowd, cv, cvb, cvt, oro, oro_uf,             &
+      stype, scolor,lai,shdmin, shdmax, snowd, cv, cvb, cvt, oro, oro_uf,             &
       xlat_d, xlon_d, slmsk, imap, jmap, errmsg, errflg)
 !
 !
@@ -72,11 +72,11 @@ contains
                                            cvt(:),     &
                                            oro(:),     &
                                            oro_uf(:),  &
+										   lai(:),	   &
                                            slmsk(:)
     integer,              intent(inout) :: vtype(:),   &
                                            stype(:),   &
                                            scolor(:),  &
-										   leaf_area_index(:), &
                                            slope(:)
 
     integer,              intent(in)    :: imap(:), jmap(:)
@@ -94,7 +94,8 @@ contains
         vegfcs (nx*ny),                      &
         sltfcs (nx*ny),                      &
         slcfcs (nx*ny),                      &               !soil color
-		TSFFCS (nx*ny),                      &
+		laifcs (nx*ny),                      &               !lai
+        TSFFCS (nx*ny),                      &
         ZORFCS (nx*ny),                      &
         AISFCS (nx*ny),                      &
         ALFFC1 (nx*ny*2),                    &
@@ -105,7 +106,6 @@ contains
 
 
     real (kind=kind_io8) :: min_ice(nx*ny)
-	real(kind=kind_phys) :: laifcs(nx*ny) ! leaf area index
     integer              :: i_indx(nx*ny), j_indx(nx*ny)
     character(len=6)     :: tile_num_ch
     real(kind=kind_phys) :: sig1t
@@ -142,6 +142,7 @@ contains
       vegfcs = real(vtype)
       sltfcs = real(stype)
       slcfcs = real(scolor)         !soil color
+	  laifcs = real(lai)         !lai
 !
       if (frac_grid) then
         do ix=1,npts
@@ -243,7 +244,7 @@ contains
                      shdmin, shdmax, slpfcs, snoalb, tsffcs,         &
                      weasd, zorfcs, albfc1, tg3, canopy,             &
                      smcfc1, stcfc1, slmsk, aisfcs,                  &
-                     vfrac, vegfcs, sltfcs, slcfcs,laifcs,alffc1, cv,       &   !slcfcs: soil color laifcs: leaf area index
+                     vfrac, vegfcs, sltfcs,laifcs, slcfcs,alffc1, cv,       &   !slcfcs: soil color laifcs : lai
                      cvb, cvt, me, nthrds,                           &
                      nlunit, size(input_nml_file), input_nml_file,   &
                      min_ice, ialb, isot, ivegsrc,                   &
@@ -264,6 +265,8 @@ contains
       vtype = int(vegfcs)
       stype = int(sltfcs)
       scolor = int(slcfcs)  !soil color
+	  lai = int(laifcs)  !soil color
+	  
 !
       do ix=1,npts
         zorll(ix) = ZORFCS(ix)
