@@ -488,9 +488,11 @@
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%vtype_save', Sfcprop%vtype_save)
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%stype'     , Sfcprop%stype)
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%stype_save', Sfcprop%stype_save)
-
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolor'     , Sfcprop%scolor)
-                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolore_save', Sfcprop%scolor_save)
+                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolor_save', Sfcprop%scolor_save)
+					 
+                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%leaf_area_index'     , Sfcprop%leaf_area_index)
+                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%leaf_area_index_save', Sfcprop%leaf_area_index_dave)
 
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%uustar'    , Sfcprop%uustar)
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%oro'       , Sfcprop%oro)
@@ -747,9 +749,9 @@
                          call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%det_thl     ',  Diag%det_thl)
                          call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%det_sqv     ',  Diag%det_sqv)
                        end if
-                       call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%maxwidth    ',  Diag%maxwidth)
+                       call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%nupdraft    ',  Diag%nupdraft)
                        call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%maxMF       ',  Diag%maxMF)
-                       call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%ztop_plume  ',  Diag%ztop_plume)
+                       call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%ktop_plume  ',  Diag%ktop_plume)
                        call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%exch_h      ',  Diag%exch_h)
                        call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Diag%exch_m      ',  Diag%exch_m)
                      end if
@@ -1535,7 +1537,7 @@
 !! \htmlinclude GFS_checkland_run.html
 !!
       subroutine GFS_checkland_run (me, master, blkno, im, kdt, iter, flag_iter, flag_guess, &
-              flag_init, flag_restart, frac_grid, isot, ivegsrc, stype,scolor, vtype, slope,        &
+              flag_init, flag_restart, frac_grid, isot, ivegsrc, stype,scolor,leaf_area_index, vtype, slope,        &
               dry, icy, wet, lake, ocean, oceanfrac, landfrac, lakefrac, slmsk, islmsk,      &
               zorl, zorlw, zorll, zorli, fice, errmsg, errflg )
 
@@ -1559,6 +1561,8 @@
          integer,          intent(in   ) :: ivegsrc
          integer,          intent(in   ) :: stype(:)
          integer,          intent(in   ) :: scolor(:)
+		 real(kind_phys),  intent(in   ) :: leaf_area_index(:)
+		 
 
          integer,          intent(in   ) :: vtype(:)
          integer,          intent(in   ) :: slope(:)
@@ -1606,6 +1610,8 @@
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, stype(i)      :', i, blkno, stype(i)
 
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, scolor(i)      :', i, blkno, scolor(i)
+			 write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, leaf_area_index(i)      :', i, blkno, leaf_area_index(i)
+			 
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, vtype(i)      :', i, blkno, vtype(i)
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, slope(i)      :', i, blkno, slope(i)
              write(0,'(a,2i5,1x,1x,l)') 'YYY: i, blk, dry(i)        :', i, blkno, dry(i)

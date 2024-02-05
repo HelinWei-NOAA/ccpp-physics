@@ -1,8 +1,7 @@
 [ccpp-table-properties]
   name = GFS_surface_generic_pre
   type = scheme
-  relative_path = ../../
-  dependencies = hooks/machine.F,SFC_Models/Land/Noah/surface_perturbation.F90
+  dependencies = machine.F,surface_perturbation.F90
 
 ########################################################################
 [ccpp-arg-table]
@@ -58,6 +57,14 @@
   dimensions = (horizontal_dimension)
   type = integer
   intent = inout
+[leaf_area_index]
+  standard_name = leaf_area_index
+  long_name = leave area index for lsm
+  units = index
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
 [vtype]
   standard_name = vegetation_type_classification
   long_name = vegetation type for lsm
@@ -85,6 +92,14 @@
   units = index
   dimensions = (horizontal_dimension)
   type = integer
+  intent = out
+[leaf_area_index_save]
+  standard_name = leaf_area_index_save
+  long_name = leave area index for lsm
+  units = index
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
   intent = out
 [vtype_save]
   standard_name = vegetation_type_classification_save
@@ -184,6 +199,14 @@
   dimensions = (horizontal_loop_extent)
   type = integer
   intent = inout
+[leaf_area_index]
+  standard_name = leaf_area_index
+  long_name = leave area index for lsm
+  units = index
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
 [vtype]
   standard_name = vegetation_type_classification
   long_name = vegetation type for lsm
@@ -219,6 +242,14 @@
   dimensions = (horizontal_loop_extent)
   type = integer
   intent = out
+[leaf_area_index_save]
+  standard_name = leaf_area_index
+  long_name = leave area index save for lsm
+  units = index
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
 [slope_save]
   standard_name = surface_slope_classification_save
   long_name = sfc slope type for lsm save

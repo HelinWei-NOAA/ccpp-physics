@@ -2,7 +2,7 @@
 [ccpp-table-properties]
   name = GFS_surface_generic_post
   type = scheme
-  dependencies = ../../hooks/machine.F
+  dependencies = machine.F
 
 ########################################################################
 [ccpp-arg-table]
@@ -29,6 +29,13 @@
   dimensions = (horizontal_dimension)
   type = integer
   intent = out
+[leaf_area_index]
+  standard_name = leaf_area_index
+  long_name = leaf area index for lsm
+  units = index
+  dimensions = (horizontal_dimension)
+  type = real
+  intent = out 
 [slope]
   standard_name = surface_slope_classification
   long_name = sfc slope type for lsm
@@ -57,6 +64,14 @@
   dimensions = (horizontal_dimension)
   type = integer
   intent = in
+[leaf_area_index_save]
+  standard_name = leaf_area_index_save
+  long_name = leaf area index for lsm save
+  units = index
+  dimensions = (horizontal_dimension)
+  type = real
+  intent = in
+  
 [slope_save]
   standard_name = surface_slope_classification_save
   long_name = sfc slope type for lsm save
