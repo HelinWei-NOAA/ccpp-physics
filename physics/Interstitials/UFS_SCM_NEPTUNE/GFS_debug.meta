@@ -550,6 +550,13 @@
   dimensions = (horizontal_loop_extent)
   type = integer
   intent = in
+[lai]
+  standard_name = leaf_area_index
+  long_name = leaf area index for lsm
+  units = index
+  dimensions = (horizontal_loop_extent)
+  type = real
+  intent = in
 [vtype]
   standard_name = vegetation_type_classification
   long_name = vegetation type for lsm

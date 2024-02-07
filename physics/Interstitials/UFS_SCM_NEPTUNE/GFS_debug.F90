@@ -1,6 +1,5 @@
 !> \file GFS_debug.F90
 
-
 !!
 !! This is the place to switch between different debug outputs.
 !! - The default behavior for Intel (or any compiler other than GNU)
@@ -491,6 +490,9 @@
 
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolor'     , Sfcprop%scolor)
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolore_save', Sfcprop%scolor_save)
+
+                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%lai'       , Sfcprop%lai)
+                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%lai_save'  , Sfcprop%lai_save)
 
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%uustar'    , Sfcprop%uustar)
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%oro'       , Sfcprop%oro)
@@ -1577,6 +1579,7 @@
          real(kind_phys),  intent(in   ) :: zorll(:)
          real(kind_phys),  intent(in   ) :: zorli(:)
          real(kind_phys),  intent(in   ) :: fice(:)
+         real(kind_phys),  intent(in   ) :: lai(:)
          character(len=*), intent(  out) :: errmsg
          integer,          intent(  out) :: errflg
 
@@ -1606,6 +1609,7 @@
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, stype(i)      :', i, blkno, stype(i)
 
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, scolor(i)      :', i, blkno, scolor(i)
+             write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, lai(i)         :', i, blkno, lai(i)
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, vtype(i)      :', i, blkno, vtype(i)
              write(0,'(a,2i5,1x,e16.7)')'YYY: i, blk, slope(i)      :', i, blkno, slope(i)
              write(0,'(a,2i5,1x,1x,l)') 'YYY: i, blk, dry(i)        :', i, blkno, dry(i)

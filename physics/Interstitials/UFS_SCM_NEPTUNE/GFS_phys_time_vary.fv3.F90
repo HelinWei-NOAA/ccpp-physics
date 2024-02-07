@@ -779,7 +779,7 @@
                                       tsfc(:), tsfco(:), tisfc(:), hice(:), fice(:),                 &
                                       facsf(:), facwf(:), alvsf(:), alvwf(:), alnsf(:), alnwf(:),    &
                                       zorli(:), zorll(:), zorlo(:), weasd(:), snoalb(:),             &
-                                      canopy(:), vfrac(:), shdmin(:), shdmax(:), lai(:)                    &
+                                      canopy(:), vfrac(:), shdmin(:), shdmax(:), lai(:),             &
                                       snowd(:), cv(:), cvb(:), cvt(:), oro(:), oro_uf(:), slmsk(:)
          integer,              intent(inout) :: vtype(:), stype(:),scolor(:), slope(:) 
 
@@ -954,7 +954,7 @@
                  frac_grid, smc, slc, stc, smois, sh2o, tslb, tiice, tg3, tref, tsfc,        &
                  tsfco, tisfc, hice, fice, facsf, facwf, alvsf, alvwf, alnsf, alnwf,         &
                  zorli, zorll, zorlo, weasd, slope, snoalb, canopy, vfrac, vtype,            &
-                 stype, scolor, lai, shdmin, shdmax, snowd, cv, cvb, cvt, oro, oro_uf,            &
+                 stype, scolor, lai, shdmin, shdmax, snowd, cv, cvb, cvt, oro, oro_uf,       &
                  xlat_d, xlon_d, slmsk, imap, jmap, errmsg, errflg)
            endif
          endif
