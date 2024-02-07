@@ -1810,10 +1810,11 @@
   intent = inout
 [lai]
   standard_name = leaf_area_index
-  long_name = leav area index for lsm
+  long_name = leaf area index for lsm
   units = index
   dimensions = (horizontal_dimension)
   type = real
+  kind = kind_phys
   intent = inout
 [shdmin]
   standard_name = min_vegetation_area_fraction
