@@ -150,7 +150,7 @@
       snowxy, tvxy, tgxy, canicexy, canliqxy, eahxy, tahxy, cmxy,&
       chxy, fwetxy, sneqvoxy, alboldxy, qsnowxy, wslakexy, zwtxy,&
       waxy, wtxy, tsnoxy, zsnsoxy, snicexy, snliqxy, lfmassxy,   &
-      rtmassxy, stmassxy, woodxy, stblcpxy, fastcpxy, xlaixy,    &
+      rtmassxy, stmassxy, woodxy, stblcpxy, fastcpxy, lai,    &
       xsaixy, taussxy, smoiseq, smcwtdxy, deeprechxy, rechxy,    &
       albdvis, albdnir,  albivis,  albinir,emiss,                &
 
@@ -364,7 +364,7 @@
   real(kind=kind_phys), dimension(:)     , intent(inout) :: woodxy     ! mass of wood (incl. woody roots) [g/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: stblcpxy   ! stable carbon in deep soil [g/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: fastcpxy   ! short-lived carbon, shallow soil [g/m2]
-  real(kind=kind_phys), dimension(:)     , intent(inout) :: xlaixy     ! leaf area index [m2/m2]
+! real(kind=kind_phys), dimension(:)     , intent(inout) :: xlaixy     ! leaf area index [m2/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: xsaixy     ! stem area index [m2/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: taussxy    ! snow age factor [-]
   real(kind=kind_phys), dimension(:,:)   , intent(inout) :: smoiseq    ! eq volumetric soil moisture [m3/m3]

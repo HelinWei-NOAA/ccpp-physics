@@ -1056,14 +1056,6 @@
   type = real
   kind = kind_phys
   intent = inout
-[xlaixy]
-  standard_name = leaf_area_index
-  long_name = leaf area index 
-  units = none
-  dimensions = (horizontal_loop_extent)
-  type = real
-  kind = kind_phys
-  intent = inout
 [xsaixy]
   standard_name = stem_area_index
   long_name = stem area index 
