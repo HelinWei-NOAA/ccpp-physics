@@ -61,7 +61,7 @@
 [lai]
   standard_name = leaf_area_index	
   long_name = leaf area index for lsm
-  units = index
+  units = none
   dimensions = (horizontal_dimension)
   type = real
   intent = inout
@@ -96,7 +96,7 @@
 [lai_save]
   standard_name = leaf_area_index_save
   long_name = leaf area index for lsm save
-  units = index
+  units = none
   dimensions = (horizontal_dimension)
   type = real
   intent = out
@@ -201,7 +201,7 @@
 [lai]
   standard_name = leaf_area_index
   long_name = leaf area index for lsm
-  units = index
+  units = none
   dimensions = (horizontal_loop_extent)
   type = real
   kind = kind_phys
@@ -244,7 +244,7 @@
 [lai_save]
   standard_name = leaf_area_index_save
   long_name = leaf_area_index for lsm save
-  units = index
+  units = none
   dimensions = (horizontal_loop_extent)
   type = real
   intent = out

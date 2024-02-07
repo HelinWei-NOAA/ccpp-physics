@@ -553,7 +553,7 @@
 [lai]
   standard_name = leaf_area_index
   long_name = leaf area index for lsm
-  units = index
+  units = none
   dimensions = (horizontal_loop_extent)
   type = real
   kind = kind_phys
