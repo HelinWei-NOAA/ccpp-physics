@@ -128,6 +128,7 @@
 !...................................
 !  ---  inputs:
     ( im, km, lsnowl, itime, ps, u1, v1, t1, q1, soiltyp,soilcol,&
+      lai,                                                       &
       vegtype, sigmaf, dlwflx, dswsfc, snet, delt, tg3, cm, ch,  &
       prsl1, prslk1, prslki, prsik1, zf,pblh, dry, wind, slopetyp,&
       shdmin, shdmax, snoalb, sfalb, flag_iter,con_g,            &
@@ -240,6 +241,7 @@
   real(kind=kind_phys), dimension(:)     , intent(in)    :: q1         ! layer 1 specific humidity [kg/kg]
   integer             , dimension(:)     , intent(in)    :: soiltyp    ! soil type (integer index)
   integer             , dimension(:)     , intent(in)    :: soilcol    ! soil color (integer index)
+  real(kind=kind_phys), dimension(:)     , intent(in)    :: lai         ! leaf area index [-]
   integer             , dimension(:)     , intent(in)    :: vegtype    ! vegetation type (integer index)
   real(kind=kind_phys), dimension(:)     , intent(in)    :: sigmaf     ! areal fractional cover of green vegetation
   real(kind=kind_phys), dimension(:)     , intent(in)    :: dlwflx     ! downward longwave radiation [W/m2]
@@ -269,6 +271,7 @@
   real(kind=kind_phys), dimension(:)     , intent(in)    :: wind       ! wind speed [m/s]
   integer             , dimension(:)     , intent(in)    :: slopetyp   ! surface slope classification
   real(kind=kind_phys), dimension(:)     , intent(in)    :: shdmin     ! min green vegetation coverage [fraction]
+  real(kind=kind_phys), dimension(:)     , intent(in)    :: lai        ! leaf area index [-]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: shdmax     ! max green vegetation coverage [fraction]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: snoalb     ! upper bound on max albedo over deep snow
   real(kind=kind_phys), dimension(:)     , intent(inout) :: sfalb      ! mean surface albedo [fraction]
@@ -726,6 +729,7 @@
       max_snow_levels       = nsnow
       vegetation_frac       = sigmaf(i)
       max_vegetation_frac   = shdmax(i)
+  
       vegetation_category   = vegtype(i)
       surface_type          = 1
       crop_type             = 0
@@ -807,7 +811,8 @@
       wood_carbon                  = woodxy(i)
       soil_carbon_stable           = stblcpxy(i)
       soil_carbon_fast             = fastcpxy(i)
-      leaf_area_index              = xlaixy(i)
+!      leaf_area_index              = xlaixy(i)
+     leaf_area_index              = lai(i)
       stem_area_index              = xsaixy(i)
       cm_noahmp                    = cmxy(i)
       ch_noahmp                    = chxy(i)
@@ -1083,7 +1088,8 @@
       woodxy    (i)   = wood_carbon
       stblcpxy  (i)   = soil_carbon_stable
       fastcpxy  (i)   = soil_carbon_fast
-      xlaixy    (i)   = leaf_area_index
+!      xlaixy    (i)   = leaf_area_index
+      lai       (i)   = leaf_area_index
       xsaixy    (i)   = stem_area_index
 
       snowc     (i)   = snow_cover_fraction
