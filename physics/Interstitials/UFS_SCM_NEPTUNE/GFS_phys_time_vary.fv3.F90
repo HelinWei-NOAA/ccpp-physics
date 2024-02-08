@@ -782,7 +782,7 @@
                                       canopy(:), vfrac(:), shdmin(:), shdmax(:), lai(:),             &
                                       snowd(:), cv(:), cvb(:), cvt(:), oro(:), oro_uf(:), slmsk(:)
          integer,              intent(inout) :: vtype(:), stype(:),scolor(:), slope(:) 
-         real(kind_phys),      intent(inout) :: lai(:)
+!         real(kind_phys),      intent(inout) :: lai(:)
          character(len=*),     intent(out)   :: errmsg
          integer,              intent(out)   :: errflg
 
