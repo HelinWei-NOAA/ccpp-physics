@@ -489,7 +489,7 @@
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%stype_save', Sfcprop%stype_save)
 
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolor'     , Sfcprop%scolor)
-                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolore_save', Sfcprop%scolor_save)
+                     call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%scolor_save', Sfcprop%scolor_save)
 
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%lai'       , Sfcprop%lai)
                      call print_var(mpirank, omprank, blkno, Grid%xlat_d, Grid%xlon_d, 'Sfcprop%lai_save'  , Sfcprop%lai_save)

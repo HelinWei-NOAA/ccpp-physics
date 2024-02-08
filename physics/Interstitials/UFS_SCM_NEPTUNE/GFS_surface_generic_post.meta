@@ -70,6 +70,7 @@
   units = none
   dimensions = (horizontal_dimension)
   type = real
+  kind = kind_phys
   intent = in
 [slope_save]
   standard_name = surface_slope_classification_save

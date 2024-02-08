@@ -271,7 +271,7 @@
   real(kind=kind_phys), dimension(:)     , intent(in)    :: wind       ! wind speed [m/s]
   integer             , dimension(:)     , intent(in)    :: slopetyp   ! surface slope classification
   real(kind=kind_phys), dimension(:)     , intent(in)    :: shdmin     ! min green vegetation coverage [fraction]
-  real(kind=kind_phys), dimension(:)     , intent(in)    :: lai        ! leaf area index [-]
+!  real(kind=kind_phys), dimension(:)     , intent(in)    :: lai        ! leaf area index [-]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: shdmax     ! max green vegetation coverage [fraction]
   real(kind=kind_phys), dimension(:)     , intent(in)    :: snoalb     ! upper bound on max albedo over deep snow
   real(kind=kind_phys), dimension(:)     , intent(inout) :: sfalb      ! mean surface albedo [fraction]
@@ -364,7 +364,7 @@
   real(kind=kind_phys), dimension(:)     , intent(inout) :: woodxy     ! mass of wood (incl. woody roots) [g/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: stblcpxy   ! stable carbon in deep soil [g/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: fastcpxy   ! short-lived carbon, shallow soil [g/m2]
-! real(kind=kind_phys), dimension(:)     , intent(inout) :: xlaixy     ! leaf area index [m2/m2]
+  real(kind=kind_phys), dimension(:)     , intent(inout) :: xlaixy     ! leaf area index [m2/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: xsaixy     ! stem area index [m2/m2]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: taussxy    ! snow age factor [-]
   real(kind=kind_phys), dimension(:,:)   , intent(inout) :: smoiseq    ! eq volumetric soil moisture [m3/m3]
@@ -811,8 +811,8 @@
       wood_carbon                  = woodxy(i)
       soil_carbon_stable           = stblcpxy(i)
       soil_carbon_fast             = fastcpxy(i)
-!      leaf_area_index              = xlaixy(i)
-     leaf_area_index              = lai(i)
+      leaf_area_index              = xlaixy(i)
+      leaf_area_index              = lai(i)
       stem_area_index              = xsaixy(i)
       cm_noahmp                    = cmxy(i)
       ch_noahmp                    = chxy(i)
@@ -1088,7 +1088,7 @@
       woodxy    (i)   = wood_carbon
       stblcpxy  (i)   = soil_carbon_stable
       fastcpxy  (i)   = soil_carbon_fast
-!      xlaixy    (i)   = leaf_area_index
+      xlaixy    (i)   = leaf_area_index
       lai       (i)   = leaf_area_index
       xsaixy    (i)   = stem_area_index
 

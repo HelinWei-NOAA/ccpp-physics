@@ -64,6 +64,7 @@
   units = none
   dimensions = (horizontal_dimension)
   type = real
+  kind = kind_phys
   intent = inout
 [vtype]
   standard_name = vegetation_type_classification
@@ -243,10 +244,11 @@
   intent = out
 [lai_save]
   standard_name = leaf_area_index_save
-  long_name = leaf_area_index for lsm save
+  long_name = leaf area index for lsm save
   units = none
   dimensions = (horizontal_loop_extent)
   type = real
+  kind = kind_phys
   intent = out
 [slope_save]
   standard_name = surface_slope_classification_save

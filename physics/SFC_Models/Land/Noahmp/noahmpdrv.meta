@@ -183,14 +183,6 @@
   dimensions = (horizontal_loop_extent)
   type = integer
   intent= in
-[lai]
-  standard_name = leaf_area_index
-  long_name = leaf area index
-  units = none
-  dimensions = (horizontal_loop_extent)
-  type = real
-  kind = kind_phys
-  intent= in
 [vegtype]
   standard_name = vegetation_type_classification
   long_name = vegetation type at each grid cell
@@ -1052,6 +1044,14 @@
   standard_name = fast_soil_pool_mass_content_of_carbon
   long_name = short-lived carbon in shallow soil
   units = g m-2
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  intent = inout
+[xlaixy]
+  standard_name = leaf_area_index
+  long_name = leaf area index
+  units = none
   dimensions = (horizontal_loop_extent)
   type = real
   kind = kind_phys
