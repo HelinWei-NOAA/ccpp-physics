@@ -128,7 +128,7 @@
      &                     sotsmn,sotimx,sotimn,sotjmx,sotjmn,          &
      &                     soclmx,soclmn,socomx,socomn,socsmx,          & 
      &                     socsmn,socimx,socimn,socjmx,socjmn,          & 
-     &                     lailmx,lailmn,laiomx,laiomn,laismx,          & ! leaf area indec
+     &                     lailmx,lailmn,laiomx,laiomn,laismx,          & ! leaf area index
      &                     laismn,laiimx,laiimn,laijmx,laijmn,          &
      &                     alslmx,alslmn,alsomx,alsomn,alssmx,          &
      &                     alssmn,alsimx,alsimn,alsjmx,alsjmn,          &
@@ -148,7 +148,7 @@
      &                     faiss,fsnol,bltmsk,falbs,cvegs,percrit,      &
      &                     deltsfc,critp2,critp3,blnmsk,critp1,         &
      &                     fcplrl,fcplrs,fczors,fvets,fsotl,fsots,      &
-     &                     fsocl,fsocs,flail,flais,                                 & 
+     &                     fsocl,fsocs,flail,flais,                     & 
      &                     fvetl,fplrs,fvegl,fvegs,fcsnol,fcsnos,       &
      &                     fczorl,fcalbs,fctsfl,fctsfs,fcalbl,          &
      &                     falfs,falfl,fh,crit,zsca,ztsfc,tem1,tem2     &
