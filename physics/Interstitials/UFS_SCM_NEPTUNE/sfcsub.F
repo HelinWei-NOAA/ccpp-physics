@@ -1,6 +1,5 @@
 !>\file sfcsub.F
-!! This file contains gribcode for each parameter.
-
+!! This file contains gribcode for each parameter
 
 !>\defgroup mod_sfcsub GFS sfcsub Module
 !!\ingroup mod_GFS_phys_time_vary 
@@ -73,7 +72,6 @@
 !!\param use_ufo
 !!\param nst_anl
 !!
-
       subroutine sfccycle(lugb,len,lsoil,sig1t,deltsfc                    &
      &,                   iy,im,id,ih,fh,rla,rlo                          &
      &,                   slmskl,slmskw,orog,orog_uf,use_ufo,nst_anl      &
@@ -128,7 +126,7 @@
      &                     sotsmn,sotimx,sotimn,sotjmx,sotjmn,          &
      &                     soclmx,soclmn,socomx,socomn,socsmx,          & 
      &                     socsmn,socimx,socimn,socjmx,socjmn,          & 
-     &                     lailmx,lailmn,laiomx,laiomn,laismx,          & ! leaf area index
+     &                     lailmx,lailmn,laiomx,laiomn,laismx,          & ! leaf area indec
      &                     laismn,laiimx,laiimn,laijmx,laijmn,          &
      &                     alslmx,alslmn,alsomx,alsomn,alssmx,          &
      &                     alssmn,alsimx,alsimn,alsjmx,alsjmn,          &
@@ -138,7 +136,7 @@
      &                     epssot,epssoc,epsalf,qctsfs,qcsnos,qctsfi,   & 
      &                     aislim,snwmin,snwmax,cplrl,cplrs,epslai,     &
      &                     cvegl,czors,csnol,csnos,czorl,csots,         &
-     &                     csotl,csocs,csocl,clail,clais,               & ! leaf area index
+     &                     csotl,csocs,csocl,clais,clail,               & ! leaf area index
      &                     cvwgs,cvetl,cvets,calfs,                     & 
      &                     fcalfl,fcalfs,ccvt,ccnp,ccv,ccvb,            &
      &                     calbl,calfl,calbs,ctsfs,grboro,              &
@@ -148,7 +146,7 @@
      &                     faiss,fsnol,bltmsk,falbs,cvegs,percrit,      &
      &                     deltsfc,critp2,critp3,blnmsk,critp1,         &
      &                     fcplrl,fcplrs,fczors,fvets,fsotl,fsots,      &
-     &                     fsocl,fsocs,flail,flais,                     & 
+     &                     fsocl,fsocs,flail,flais,                                 & 
      &                     fvetl,fplrs,fvegl,fvegs,fcsnol,fcsnos,       &
      &                     fczorl,fcalbs,fctsfl,fctsfs,fcalbl,          &
      &                     falfs,falfl,fh,crit,zsca,ztsfc,tem1,tem2     &
@@ -184,6 +182,7 @@
       logical gausm, deads, qcmsk, znlst, monclm, monanl,               &
      &        monfcs, monmer, mondif, landice
       character(len=*), intent(in) :: input_nml_file(sz_nml)
+    
 !
 !>  This is a limited point version of surface program.
 !!
@@ -269,6 +268,7 @@
       parameter(aicice=1.0,aicsea=0.0)
       parameter(tgice=271.2)
       parameter(rlapse=0.65e-2)
+
 !
 !  max/min of fields for check and replace.
 !
@@ -556,6 +556,7 @@
       integer kpd7, kpd9
 !
       logical icefl1(len), icefl2(len)
+      
 !
       real (kind=kind_io8), allocatable, dimension(:) ::                &
      &     tsffcsd, snofcsd, tg3fcsd, zorfcsd, slifcsd, aisfcsd,        &
@@ -626,11 +627,13 @@
 !
 !  debug only
 !
+     
       character*500 fndclm,fndanl
 !
       logical lanom
 
 !
+
       namelist/namsfc/fnglac,fnmxic,
      &                fntsfc,fnwetc,fnsnoc,fnzorc,fnalbc,fnaisc,
      &                fnplrc,fntg3c,fnscvc,fnsmcc,fnstcc,fnacnc,
@@ -833,7 +836,7 @@
 !         print *,' rla(i)=',rla(i),' rlo(i)=',rlo(i)
 !       endif
 !     enddo
-
+      print *, 'settingvalues'
       if (ialb == 1) then
         kpdabs = kpdabs_1
         kpdalb = kpdalb_1
@@ -877,6 +880,7 @@
           fstcs(k) = 0.
         enddo
 #ifdef INTERNAL_FILE_NML
+        print '(A)', 'readingnml', input_nml_file
         read(input_nml_file, nml=namsfc)
 #else
 !       print *,' in sfcsub nlunit=',nlunit,' me=',me,' ialb=',ialb
@@ -897,6 +901,8 @@
           print *,' aislim=',aislim,' sihnew=',sihnew
           print *,' isot=', isot,' ivegsrc=',ivegsrc
           print *,' fnsotc =', fnsotc
+          print *,' fnlaic =', fnlaic 
+          
         endif
 
         if (ivegsrc == 2) then   ! sib
@@ -1774,7 +1780,7 @@
      &            rla,rlo,len,kqcm,percrit,lgchek,me)
 ! leaf area index
       call qcmxmn('laia    ',laianl,slmskl,snoanl,icefl1,
-     &            lailmx,lailmn,laiomx,laiomn,laiimx,socimn,
+     &            lailmx,lailmn,laiomx,laiomn,laiimx,laiimn,
      &            laijmx,laijmn,laismx,laismn,epslai,
      &            rla,rlo,len,kqcm,percrit,lgchek,me)
 
@@ -1866,6 +1872,7 @@
      &              tg3fcs,cvfcs ,cvbfcs,cvtfcs,
      &              cnpfcs,smcfcs,stcfcs,slifcs,aisfcs,
      &              vegfcs,vetfcs,sotfcs,socfcs,alffcs,  
+     &              laifcs, 
 !cwu [+1l] add ()fcs for sih, sic
      &              sihfcs,sicfcs,
 !clu [+1l] add ()fcs for vmn, vmx, slp, abs
@@ -1873,7 +1880,8 @@
      &              tsfanl,wetanl,snoanl,zoranl,albanl,
      &              tg3anl,cvanl ,cvbanl,cvtanl,
      &              cnpanl,smcanl,stcanl,slianl,aisanl,
-     &              veganl,vetanl,sotanl,socanl,alfanl, 
+     &              veganl,vetanl,sotanl,socanl,alfanl,
+     &              laianl, 
 !cwu [+1l] add ()anl for sih, sic
      &              sihanl,sicanl,
 !clu [+1l] add ()anl for vmn, vmx, slp, abs
@@ -1882,6 +1890,7 @@
 
       do i=1,len
         print *, 'AFTER FILFCS (i) is ',socfcs (i)
+        print *, 'AFTER FILFCS (i) is ',laifcs (i)
       enddo
 
         if (sig1t(1) /= 0.) then
@@ -2164,7 +2173,7 @@
      &           tsfanl,tsfan2,wetanl,snoanl,zoranl,albanl,aisanl,
      &           cvanl ,cvbanl,cvtanl,
      &           cnpanl,smcanl,stcanl,slianl,veganl,
-     &           vetanl,sotanl,socanl,alfanl,       
+     &           vetanl,sotanl,socanl,laianl,alfanl,       
      &           ctsfl,calbl,caisl,csnol,csmcl,czorl,cstcl,cvegl,
      &           ctsfs,calbs,caiss,csnos,csmcs,czors,cstcs,cvegs,
      &           ccv,ccvb,ccvt,ccnp,cvetl,cvets,csotl,csots,csocl,csocs, 
@@ -2276,7 +2285,7 @@
      &            socjmx,socjmn,socsmx,socsmn,epssoc,
      &            rla,rlo,len,kqcm,percrit,lgchek,me)
 ! leaf area index     
-      call qcmxmn('lai    ',laianl,slmskl,snoanl,icefl1,   
+      call qcmxmn('laim    ',laianl,slmskl,snoanl,icefl1,   
      &            lailmx,lailmn,laiomx,laiomn,laiimx,laiimn,
      &            laijmx,laijmn,laismx,laismn,epslai,
      &            rla,rlo,len,kqcm,percrit,lgchek,me)
@@ -7628,26 +7637,19 @@ cjfe
 !
 ! leaf area index
 !
-        If(fnsocc(1:8).ne.'        ') then
+        If(fnlaic(1:8).ne.'        ') then
           if ( index(fnlaic, "tileX.nc") == 0) then ! grib file
             kpd7=-1
-            call fixrdc(lugb,fnsocc,kpdsoc,kpd7,kpd9,slmskl,
+            call fixrdc(lugb,fnlaic,kpdlai,kpd7,kpd9,slmskl,
      &                  lai,len,iret
      &,                 imsk, jmsk, slmskh, gaus,blno, blto
      &,                 outlat, outlon, me)
           else
             call fixrdc_tile(fnlaic, tile_num_ch, i_index, j_index,
      &                       255, lai, 1, len, me)
-           if (me .eq. 0) write(6,*) 'leaf area index name is',fnlaic
           endif
-          if (me .eq. 0) write(6,*) 'climatological soil color read in.'
+            if (me .eq. 0) write(6,*) 'leaf area index name is',fnlaic
         endif
-
-
-
-
-
-
 
 
 !
@@ -8466,6 +8468,8 @@ cjfe
           error=nf90_inq_varid(ncid, 'substrate_temperature', id_var)
         case(87)
           error=nf90_inq_varid(ncid, 'vegetation_greenness', id_var)
+        case(182)
+          error=nf90_inq_varid(ncid, 'leaf_area_index', id_var)
         case(159)
           error=nf90_inq_varid(ncid, 'maximum_snow_albedo', id_var)
         case(189)
@@ -8488,8 +8492,6 @@ cjfe
           ERROR=NF90_INQ_VARID(NCID, 'soil_color', id_var)
         case(256:257)
           error=nf90_inq_varid(ncid, 'vegetation_greenness', id_var)
-        case(182)
-          error=nf90_inq_varid(ncid, 'leaf_area_index', id_var)
 
 
         case default
@@ -8510,6 +8512,9 @@ cjfe
           if (error /= nf90_noerr) call netcdf_err(error)
           do ii = 1,npts
             var(ii) = max(var(ii), dummy(i_index(ii),j_index(ii),1))
+                if (var(ii) .ge. 0.0) then
+                        print '(A,F10.1)','veggreen=', var(ii)
+                endif
           enddo
         enddo
 
