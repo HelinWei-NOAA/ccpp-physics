@@ -91,6 +91,7 @@ contains
         slmskw (nx*ny),                      &
         slpfcs (nx*ny),                      &
         vegfcs (nx*ny),                      &
+        laifcs (nx*ny),                      &
         sltfcs (nx*ny),                      &
         slcfcs (nx*ny),                      &               !soil color
         TSFFCS (nx*ny),                      &
@@ -241,7 +242,8 @@ contains
                      shdmin, shdmax, slpfcs, snoalb, tsffcs,         &
                      weasd, zorfcs, albfc1, tg3, canopy,             &
                      smcfc1, stcfc1, slmsk, aisfcs,                  &
-                     vfrac, vegfcs, sltfcs, slcfcs,alffc1, cv,       &   !slcfcs: soil color
+                     vfrac, vegfcs,laifcs,                           &
+                     sltfcs, slcfcs,alffc1, cv,                      &   !slcfcs: soil color
                      cvb, cvt, me, nthrds,                           &
                      nlunit, size(input_nml_file), input_nml_file,   &
                      min_ice, ialb, isot, ivegsrc,                   &
