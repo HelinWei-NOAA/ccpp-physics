@@ -21,8 +21,8 @@
 !> \section arg_table_GFS_surface_generic_pre_init Argument Table
 !! \htmlinclude GFS_surface_generic_pre_init.html
 !!
-      subroutine GFS_surface_generic_pre_init (nthreads, im, slmsk, isot, ivegsrc, stype,scolor, vtype, slope, &
-                                               vtype_save, stype_save,scolor_save, slope_save, errmsg, errflg)
+      subroutine GFS_surface_generic_pre_init (nthreads, im, slmsk, isot, ivegsrc, stype,scolor,lai, vtype, slope, &
+                                               vtype_save, stype_save,scolor_save, slope_save,lai_save, errmsg, errflg)
 
         implicit none
 
@@ -32,6 +32,8 @@
         integer,         dimension(:), intent(inout) :: vtype, stype, scolor,slope
         integer,         dimension(:), intent(out)   :: vtype_save, stype_save,scolor_save, slope_save
 
+		real(kind_phys), dimension(:), intent(inout)  :: lai
+		real(kind_phys), dimension(:), intent(out)    :: lai_save
         ! CCPP error handling
         character(len=*), intent(out) :: errmsg
         integer,          intent(out) :: errflg
@@ -50,22 +52,25 @@
         vtype_save(:) = vtype(:)
         stype_save(:) = stype(:)
         scolor_save(:) = scolor(:)
+		lai_save(:) = lai(:)
         slope_save(:) = slope(:)
 
-        call update_vegetation_soil_slope_type(nthreads, im, isot, ivegsrc, islmsk, vtype, stype,scolor, slope)
+        call update_vegetation_soil_slope_type(nthreads, im, isot, ivegsrc, islmsk, vtype, stype,scolor,lai, slope)
 
       end subroutine GFS_surface_generic_pre_init
 
 !> \section arg_table_GFS_surface_generic_pre_run Argument Table
 !! \htmlinclude GFS_surface_generic_pre_run.html
 !!
-      subroutine GFS_surface_generic_pre_run (nthreads, im, levs, vfrac, islmsk, isot, ivegsrc, stype, scolor,vtype, slope, &
+      subroutine GFS_surface_generic_pre_run (nthreads, im, levs, vfrac, islmsk, isot, ivegsrc, stype,     &
+                          scolor,lai,vtype, slope,                                                         &
                           prsik_1, prslk_1, tsfc, phil, con_g, sigmaf, work3, zlvl,                        &
                           drain_cpl, dsnow_cpl, rain_cpl, snow_cpl, lndp_type, n_var_lndp, sfc_wts,        &
                           lndp_var_list, lndp_prt_list,                                                    &
                           z01d, zt1d, bexp1d, xlai1d, vegf1d, lndp_vgf,                                    &
                           cplflx, flag_cice, islmsk_cice, slimskin_cpl,                                    &
-                          wind, u1, v1, cnvwind, smcwlt2, smcref2, vtype_save, stype_save,scolor_save, slope_save,     &
+                          wind, u1, v1, cnvwind, smcwlt2, smcref2, vtype_save, stype_save,                 &
+                          scolor_save,lai_save, slope_save,                                                &
                           errmsg, errflg)
 
         use surface_perturbation,  only: cdfnor
@@ -80,6 +85,10 @@
         real(kind=kind_phys), dimension(:), intent(in) :: vfrac, prsik_1, prslk_1
         integer, dimension(:), intent(inout) :: vtype, stype,scolor, slope
         integer, dimension(:), intent(out)   :: vtype_save(:), stype_save(:),scolor_save(:), slope_save(:)
+	    
+	real(kind=kind_phys), dimension(:), intent(inout) :: lai
+        real(kind=kind_phys), dimension(:), intent(out) :: lai_save(:)
+
 
         real(kind=kind_phys), dimension(:), intent(inout) :: tsfc
         real(kind=kind_phys), dimension(:,:), intent(in) :: phil
@@ -161,9 +170,10 @@
         vtype_save(:) = vtype(:)
         stype_save(:) = stype(:)
         scolor_save(:) = scolor(:)
+        lai_save(:) = lai(:)
         slope_save(:) = slope(:)
 
-        call update_vegetation_soil_slope_type(nthreads, im, isot, ivegsrc, islmsk, vtype, stype,scolor, slope)
+        call update_vegetation_soil_slope_type(nthreads, im, isot, ivegsrc, islmsk, vtype, stype,scolor,lai, slope)
 
         do i=1,im
           sigmaf(i) = max(vfrac(i), 0.01_kind_phys)
@@ -193,13 +203,17 @@
 
       end subroutine GFS_surface_generic_pre_run
 
-      subroutine update_vegetation_soil_slope_type(nthreads, im, isot, ivegsrc, islmsk, vtype, stype,scolor, slope)
+      subroutine update_vegetation_soil_slope_type(nthreads, im, isot, ivegsrc, islmsk, vtype, stype,scolor,lai, slope)
 
         implicit none
 
         integer, intent(in)    :: nthreads, im, isot, ivegsrc, islmsk(:)
         integer, intent(inout) :: vtype(:), stype(:),scolor(:), slope(:)
         integer :: i
+
+	real(kind=kind_phys), dimension(:), intent(inout) :: lai
+		
+! nothing is done to Lai here		
 
 !$OMP  parallel do num_threads(nthreads) default(none) private(i) &
 !$OMP      shared(im, isot, ivegsrc, islmsk, vtype, stype,scolor, slope)

@@ -21,11 +21,12 @@
 !> \section arg_table_GFS_surface_generic_post_init Argument Table
 !! \htmlinclude GFS_surface_generic_post_init.html
 !!
-      subroutine GFS_surface_generic_post_init (vtype, stype,scolor, slope, vtype_save, stype_save,scolor_save, slope_save, errmsg, errflg)
+      subroutine GFS_surface_generic_post_init (vtype, stype,scolor,lai, slope, vtype_save, stype_save,scolor_save,lai_save, slope_save, errmsg, errflg)
 
         integer, dimension(:), intent(in)  :: vtype_save, stype_save,scolor_save, slope_save
         integer, dimension(:), intent(out) :: vtype, stype, scolor,slope
-
+        real(kind=kind_phys),dimension(:), intent(in) :: lai_save
+	real(kind=kind_phys),dimension(:), intent(out) :: lai
         ! CCPP error handling
         character(len=*), intent(out) :: errmsg
         integer,          intent(out) :: errflg
@@ -38,6 +39,7 @@
         vtype(:) = vtype_save(:)
         stype(:) = stype_save(:)
         scolor(:) = scolor_save(:)
+	lai(:) = lai_save(:)
         slope(:) = slope_save(:)
 
       end subroutine GFS_surface_generic_post_init
@@ -54,7 +56,8 @@
         v10mi_cpl, tsfci_cpl, psurfi_cpl, nnirbmi_cpl, nnirdfi_cpl, nvisbmi_cpl, nvisdfi_cpl, nswsfci_cpl, nswsfc_cpl, nnirbm_cpl,  &
         nnirdf_cpl, nvisbm_cpl, nvisdf_cpl, gflux, evbsa, evcwa, transa, sbsnoa, snowca, snohfa, paha, ep, ecan, etran, edir, waxy, &
         runoff, srunoff, runof, drain, tecan, tetran, tedir, twa, lheatstrg, h0facu, h0facs, zvfun, hflx, evap, hflxq, hffac,       &
-        isot, ivegsrc, islmsk, vtype, stype,scolor, slope, vtype_save, stype_save,scolor_save, slope_save, errmsg, errflg)
+        isot, ivegsrc, islmsk, vtype, stype,scolor,lai, slope, vtype_save, stype_save,scolor_save,lai_save,                         &
+        slope_save, errmsg, errflg)
 
         implicit none
 
@@ -77,7 +80,8 @@
 
         real(kind=kind_phys), dimension(:), intent(inout) :: runoff, srunoff
         real(kind=kind_phys), dimension(:), intent(in)    :: drain, runof
-
+	real(kind=kind_phys), dimension(:), intent(in)    :: lai_save
+        real(kind=kind_phys), dimension(:), intent(out)    :: lai
         ! For canopy heat storage
         logical, intent(in) :: lheatstrg
         real(kind=kind_phys), intent(in) :: h0facu, h0facs
@@ -276,6 +280,7 @@
         vtype(:) = vtype_save(:)
         stype(:) = stype_save(:)
         scolor(:) = scolor_save(:)
+	lai(:) = lai_save(:)
         slope(:) = slope_save(:)
 
       end subroutine GFS_surface_generic_post_run

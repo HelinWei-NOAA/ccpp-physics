@@ -58,6 +58,14 @@
   dimensions = (horizontal_dimension)
   type = integer
   intent = inout
+[lai]
+  standard_name = leaf_area_index	
+  long_name = leaf area index for lsm
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
 [vtype]
   standard_name = vegetation_type_classification
   long_name = vegetation type for lsm
@@ -85,6 +93,13 @@
   units = index
   dimensions = (horizontal_dimension)
   type = integer
+  intent = out
+[lai_save]
+  standard_name = leaf_area_index_save
+  long_name = leaf area index for lsm save
+  units = none
+  dimensions = (horizontal_dimension)
+  type = real
   intent = out
 [vtype_save]
   standard_name = vegetation_type_classification_save
@@ -184,6 +199,14 @@
   dimensions = (horizontal_loop_extent)
   type = integer
   intent = inout
+[lai]
+  standard_name = leaf_area_index
+  long_name = leaf area index for lsm
+  units = none
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
+  intent = inout
 [vtype]
   standard_name = vegetation_type_classification
   long_name = vegetation type for lsm
@@ -218,6 +241,14 @@
   units = index
   dimensions = (horizontal_loop_extent)
   type = integer
+  intent = out
+[lai_save]
+  standard_name = leaf_area_index_save
+  long_name = leaf area index for lsm save
+  units = none
+  dimensions = (horizontal_loop_extent)
+  type = real
+  kind = kind_phys
   intent = out
 [slope_save]
   standard_name = surface_slope_classification_save
