@@ -72,6 +72,7 @@ contains
                                            cvt(:),     &
                                            oro(:),     &
                                            oro_uf(:),  &
+                                           xlaixy(:),  &
                                            slmsk(:)
     integer,              intent(inout) :: vtype(:),   &
                                            stype(:),   &
@@ -141,7 +142,8 @@ contains
       vegfcs = real(vtype)
       sltfcs = real(stype)
       slcfcs = real(scolor)         !soil color
-!
+      laifcs = xlaixy
+      !
       if (frac_grid) then
         do ix=1,npts
 !         if (landfrac(ix) > -1.0e-8_kind_phys) then
@@ -264,7 +266,8 @@ contains
       vtype = int(vegfcs)
       stype = int(sltfcs)
       scolor = int(slcfcs)  !soil color
-!
+      xlaixy= laifcs
+      !
       do ix=1,npts
         zorll(ix) = ZORFCS(ix)
         if (nint(slmskl(ix)) == 0) then
