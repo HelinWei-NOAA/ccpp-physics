@@ -5265,7 +5265,7 @@
           zoranl(i) = zorfcs(i)*rzorl + zoranl(i)*qzorl
           veganl(i) = vegfcs(i)*rvegl + veganl(i)*qvegl
           laianl(i) = laifcs(i)*rlail + laianl(i)*qlail
-!          print '(F10.1,F10.1,F10.1)', laifcs(i),rlail,qlail
+         print '(A,F10.1,F10.1,F10.1)','laifcs=', laifcs(i),rlail,qlail
           vmnanl(i) = vmnfcs(i)*rvmnl + vmnanl(i)*qvmnl
           vmxanl(i) = vmxfcs(i)*rvmxl + vmxanl(i)*qvmxl
           slpanl(i) = slpfcs(i)*rslpl + slpanl(i)*qslpl
