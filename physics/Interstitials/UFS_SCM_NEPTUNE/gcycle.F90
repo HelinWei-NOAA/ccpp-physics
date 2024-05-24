@@ -72,7 +72,6 @@ contains
                                            cvt(:),     &
                                            oro(:),     &
                                            oro_uf(:),  &
-                                           xlaixy(:),  &
                                            slmsk(:)
     integer,              intent(inout) :: vtype(:),   &
                                            stype(:),   &
@@ -92,7 +91,6 @@ contains
         slmskw (nx*ny),                      &
         slpfcs (nx*ny),                      &
         vegfcs (nx*ny),                      &
-        laifcs (nx*ny),                      &
         sltfcs (nx*ny),                      &
         slcfcs (nx*ny),                      &               !soil color
         TSFFCS (nx*ny),                      &
@@ -142,8 +140,7 @@ contains
       vegfcs = real(vtype)
       sltfcs = real(stype)
       slcfcs = real(scolor)         !soil color
-      laifcs = xlaixy
-      !
+!
       if (frac_grid) then
         do ix=1,npts
 !         if (landfrac(ix) > -1.0e-8_kind_phys) then
@@ -244,8 +241,7 @@ contains
                      shdmin, shdmax, slpfcs, snoalb, tsffcs,         &
                      weasd, zorfcs, albfc1, tg3, canopy,             &
                      smcfc1, stcfc1, slmsk, aisfcs,                  &
-                     vfrac, vegfcs,laifcs,                           &
-                     sltfcs, slcfcs,alffc1, cv,                      &   !slcfcs: soil color
+                     vfrac, vegfcs, sltfcs, slcfcs,alffc1, cv,       &   !slcfcs: soil color
                      cvb, cvt, me, nthrds,                           &
                      nlunit, size(input_nml_file), input_nml_file,   &
                      min_ice, ialb, isot, ivegsrc,                   &
@@ -266,8 +262,7 @@ contains
       vtype = int(vegfcs)
       stype = int(sltfcs)
       scolor = int(slcfcs)  !soil color
-      xlaixy= laifcs
-      !
+!
       do ix=1,npts
         zorll(ix) = ZORFCS(ix)
         if (nint(slmskl(ix)) == 0) then

@@ -353,8 +353,9 @@
       parameter(veglmx=1.0,veglmn=0.0,vegomx=0.0,vegomn=0.0,
      &          vegsmx=1.0,vegsmn=0.0,vegimx=0.0,vegimn=0.0,
      &          vegjmx=0.0,vegjmn=0.0)
-      parameter(lailmx=10.0,lailmn=0.0,laiomx=10.0,laiomn=0.0,   ! fix these values
-     &          laismx=10.0,laismn=0.0,laiimx=10.0,laiimn=0.0,
+! leaf area index      
+      parameter(lailmx=7.0,lailmn=0.0,laiomx=10.0,laiomn=0.0,   ! Sanath fix these values
+     &          laismx=7.0,laismn=0.0,laiimx=10.0,laiimn=0.0,
      &          laijmx=0.0,laijmn=0.0)
       parameter(vmnlmx=1.0,vmnlmn=0.0,vmnomx=0.0,vmnomn=0.0,
      &          vmnsmx=1.0,vmnsmn=0.0,vmnimx=0.0,vmnimn=0.0,
@@ -2516,7 +2517,6 @@
         vetfcs(i) = vetanl(i)
         sotfcs(i) = sotanl(i)
         socfcs(i) = socanl(i)   
-!clu [+4l] add vmn, vmx, slp, abs
         vmnfcs(i) = vmnanl(i)
         vmxfcs(i) = vmxanl(i)
         slpfcs(i) = slpanl(i)
@@ -5242,6 +5242,7 @@
           zoranl(i) = zorfcs(i)*rzors + zoranl(i)*qzors
           veganl(i) = vegfcs(i)*rvegs + veganl(i)*qvegs
           laianl(i) = laifcs(i)*rlais + laianl(i)*qlais
+!print '(A,F10.1,F10.1,F10.1,F10.1)','laianl=',laianl(i),laifcs(i)i,rlais,qlais
           sihanl(i) = sihfcs(i)*rsihs + sihanl(i)*qsihs
           sicanl(i) = sicfcs(i)*rsics + sicanl(i)*qsics
           vmnanl(i) = vmnfcs(i)*rvmns + vmnanl(i)*qvmns
@@ -5264,6 +5265,7 @@
           zoranl(i) = zorfcs(i)*rzorl + zoranl(i)*qzorl
           veganl(i) = vegfcs(i)*rvegl + veganl(i)*qvegl
           laianl(i) = laifcs(i)*rlail + laianl(i)*qlail
+!          print '(F10.1,F10.1,F10.1)', laifcs(i),rlail,qlail
           vmnanl(i) = vmnfcs(i)*rvmnl + vmnanl(i)*qvmnl
           vmxanl(i) = vmxfcs(i)*rvmxl + vmxanl(i)*qvmxl
           slpanl(i) = slpfcs(i)*rslpl + slpanl(i)*qslpl
@@ -7927,7 +7929,7 @@ cjfe
 !  leaf area index
 !
           if (fnlaic(1:8).ne.'        ') then
-            if ( index(fnlaic, "tileX.nc") == 0) then ! grib file
+            if ( index(fnlaic, "tileX.nc") == 0) then ! grib
               kpd7=-1
               call fixrdc(lugb,fnlaic,kpdlai,kpd7,mon,slmskl,
      &                    lai(1,nn),len,iret
@@ -7936,7 +7938,7 @@ cjfe
             else
               call fixrdc_tile(fnlaic, tile_num_ch, i_index, j_index,
      &                         kpdlai, lai(:,nn), mon, len, me)
-             !print '(A,F10.1)','lai=',lai(1,12)
+             !print '(A,F10.1)','laimon1=',lai(1,12)
             endif
             if (me .eq. 0) write(6,*) 'leaf area index',
      &                                ' cover read in for mon=',mon
@@ -8203,6 +8205,8 @@ cjfe
             else
               call fixrdc_tile(fnlaic, tile_num_ch, i_index, j_index,
      &                         kpdlai, lai(:,nn), mon, len, me)
+              
+            !print '(A,F10.1)','laimon2=',lai(1,12) 
             endif
 !           if (me .eq. 0) write(6,*) 'leaf area index',
 !    &                                ' cover read in for mon=',mon
@@ -8343,6 +8347,7 @@ cjfe
       if(fnlaic(1:8).ne.'        ') then
         do i=1,len
           laiclm(i) = wei1m * lai(i,k1) + wei2m * lai(i,k2)
+          ! print '(A,F10.1)','laiclm=',laiclm(i)
         enddo
       endif
 
