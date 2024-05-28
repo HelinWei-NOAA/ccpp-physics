@@ -83,7 +83,7 @@
      &,                   vmnfcs,vmxfcs,slpfcs,absfcs                     &
      &,                   tsffcs,snofcs,zorfcs,albfcs,tg3fcs              &
      &,                   cnpfcs,smcfcs,stcfcs,slifcs,aisfcs              &
-     &,                   vegfcs,laifcs                                   &
+     &,                   vfrac, vegfcs,laifcs                            &
      &,                   vetfcs,sotfcs,socfcs,alffcs                     & 
      &,                   cvfcs,cvbfcs,cvtfcs,me,nthrds,nlunit            &
      &,                   sz_nml,input_nml_file                           &

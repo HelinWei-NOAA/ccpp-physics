@@ -733,7 +733,7 @@
             kice, ialb, isot, ivegsrc, input_nml_file, use_ufo, nst_anl, frac_grid, fhcyc, phour,   &
             lakefrac, min_seaice, min_lakeice, smc, slc, stc, smois, sh2o, tslb, tiice, tg3, tref,  &
             tsfc, tsfco, tisfc, hice, fice, facsf, facwf, alvsf, alvwf, alnsf, alnwf, zorli, zorll, &
-            zorlo, weasd, slope, snoalb, canopy, vfrac, vtype, stype,scolor,                        &
+            zorlo, weasd, slope, snoalb, canopy, vfrac, vtype, stype,scolor,xlaixy,                 &
             shdmin, shdmax, snowd,                                                                  &
             cv, cvb, cvt, oro, oro_uf, xlat_d, xlon_d, slmsk, landfrac, ozphys,                     &
             do_ugwp_v1, jindx1_tau, jindx2_tau, ddy_j1tau, ddy_j2tau, tau_amf, errmsg, errflg)
@@ -780,7 +780,7 @@
                                       tsfc(:), tsfco(:), tisfc(:), hice(:), fice(:),                 &
                                       facsf(:), facwf(:), alvsf(:), alvwf(:), alnsf(:), alnwf(:),    &
                                       zorli(:), zorll(:), zorlo(:), weasd(:), snoalb(:),             &
-                                      canopy(:), vfrac(:), shdmin(:), shdmax(:),                     &
+                                      canopy(:), vfrac(:), shdmin(:), shdmax(:),xlaixy(:),           &
                                       snowd(:), cv(:), cvb(:), cvt(:), oro(:), oro_uf(:), slmsk(:)
          integer,              intent(inout) :: vtype(:), stype(:),scolor(:), slope(:) 
 
