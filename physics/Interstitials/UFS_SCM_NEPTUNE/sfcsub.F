@@ -7936,7 +7936,7 @@ cjfe
             else
               call fixrdc_tile(fnlaic, tile_num_ch, i_index, j_index,
      &                         kpdlai, lai(:,nn), mon, len, me)
-             print '(A,F10.1)','laimon1=',lai(1,12)
+!             print '(A,F10.1)','laimon1=',lai(1,12)
             endif
             if (me .eq. 0) write(6,*) 'leaf area index',
      &                                ' cover read in for mon=',mon
@@ -8204,7 +8204,7 @@ cjfe
               call fixrdc_tile(fnlaic, tile_num_ch, i_index, j_index,
      &                         kpdlai, lai(:,nn), mon, len, me)
               
-            print *, '(A,F10.1)','laimon2=',lai(1,12) 
+!            print *, '(A,F10.1)','laimon2=',lai(1,12) 
             endif
 !           if (me .eq. 0) write(6,*) 'leaf area index',
 !    &                                ' cover read in for mon=',mon
@@ -8345,7 +8345,7 @@ cjfe
       if(fnlaic(1:8).ne.'        ') then
         do i=1,len
           laiclm(i) = wei1m * lai(i,k1) + wei2m * lai(i,k2)
-!          print *,'(A,F10.1)','laiclm=',laiclm(i)
+!         print '(A,F10.1)','laiclm=',laiclm(i)
         enddo
       endif
 
