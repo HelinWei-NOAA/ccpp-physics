@@ -83,8 +83,8 @@
      &,                   vmnfcs,vmxfcs,slpfcs,absfcs                     &
      &,                   tsffcs,snofcs,zorfcs,albfcs,tg3fcs              &
      &,                   cnpfcs,smcfcs,stcfcs,slifcs,aisfcs              &
-     &,                   vegfcs,laiclm                                   &
-     &,                   vetfcs,sotfcs,socfcs,alffcs                     & 
+     &,                   vegfcs,vetfcs                                   &
+     &,                   laiclm,sotfcs,socfcs,alffcs                     & 
      &,                   cvfcs,cvbfcs,cvtfcs,me,nthrds,nlunit            &
      &,                   sz_nml,input_nml_file                           &
      &,                   min_ice                                         &
