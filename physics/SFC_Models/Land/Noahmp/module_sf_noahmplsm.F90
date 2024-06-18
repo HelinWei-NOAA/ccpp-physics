@@ -1172,7 +1172,7 @@ if (croptype == 0) then
      wt2 = 1.-wt1
      if (it1 .lt.  1) it1 = 12
      if (it2 .gt. 12) it2 = 1
-
+     print '(A,F10.1)','lailsm=',lai
      lai = wt1*parameters%laim(it1) + wt2*parameters%laim(it2)
      sai = wt1*parameters%saim(it1) + wt2*parameters%saim(it2)
   endif
@@ -1180,6 +1180,7 @@ if (croptype == 0) then
   if(dveg == 7 .or. dveg == 8 .or. dveg == 9) then
     sai = max(0.05,0.1 * lai)  ! when reading lai, set sai to 10% lai, but not below 0.05 mb: v3.8
     if (lai < 0.05) sai = 0.0  ! if lai below minimum, make sure sai = 0
+    print '(A,F10.1)', "inblock9=",lai
   endif
 
   if (sai < 0.05) sai = 0.0                    ! mb: sai check, change to 0.05 v3.6
