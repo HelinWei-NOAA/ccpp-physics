@@ -810,6 +810,7 @@
       soil_carbon_stable           = stblcpxy(i)
       soil_carbon_fast             = fastcpxy(i)
       leaf_area_index              = xlaixy(i)
+!      print '(A,F10.3)','xlaixy=',xlaixy(i)
       stem_area_index              = xsaixy(i)
       cm_noahmp                    = cmxy(i)
       ch_noahmp                    = chxy(i)
@@ -855,12 +856,13 @@
       call transfer_mp_parameters(vegetation_category, soil_category, &
                         slope_category, soil_color_category, crop_type,parameters)
       parameters%prcpiceden = rhonewsn1(i)
+!      print *,'dveg=',idveg
       call noahmp_options(idveg ,iopt_crs, iopt_btr , iopt_run, iopt_sfc,  &
                                  iopt_frz, iopt_inf , iopt_rad, iopt_alb,  &
                                  iopt_snf, iopt_tbot, iopt_stc, iopt_rsf,  &
 			         iopt_soil,iopt_pedo, iopt_crop,iopt_trs,  &
                                  iopt_diag,iopt_z0m)
-
+!      print *,'dveg_after=',idveg
       if ( vegetation_category == isice_table )  then
 
         if (precipitation_forcing > 0.0) then
