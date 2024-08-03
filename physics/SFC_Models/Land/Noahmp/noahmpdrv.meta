@@ -2,13 +2,20 @@
   name = noahmpdrv
   type = scheme
   dependencies = ../../../tools/funcphys.f90,../../../hooks/machine.F
-  dependencies = module_sf_noahmp_glacier.F90,module_sf_noahmplsm.F90,noahmp_tables.f90
+  dependencies = module_sf_noahmp_glacier.F90,module_sf_noahmplsm.F90,module_soil_init.f90,noahmp_tables.f90
   dependencies = ../Noah/set_soilveg.f
 
 ########################################################################
 [ccpp-arg-table]
   name = noahmpdrv_init
   type = scheme
+[im]
+  standard_name = horizontal_dimension
+  long_name = horizontal dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
 [lsm]
   standard_name = control_for_land_surface_scheme
   long_name = flag for land surface model
@@ -67,6 +74,98 @@
   type = real
   intent = out
   kind = kind_phys
+[lsoil]
+  standard_name = vertical_dimension_of_soil
+  long_name = soil vertical layer dimension
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[zsi]
+  standard_name = depth_of_soil_layers_input
+  long_name = depth of soil levels for the input initial soil
+  units = m
+  dimensions = (vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[lsoil_lsm]
+  standard_name = vertical_dimension_of_soil_internal_to_land_surface_scheme
+  long_name = number of soil layers internal to land surface model
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[zs]
+  standard_name = depth_of_soil_layers
+  long_name = depth of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = in
+[vegtype]
+  standard_name = vegetation_type_classification
+  long_name = vegetation type at each grid cell
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent= in
+[soiltyp]
+  standard_name = soil_type_classification
+  long_name = soil type at each grid cell
+  units = index
+  dimensions = (horizontal_dimension)
+  type = integer
+  intent= in
+[smc]
+  standard_name = volume_fraction_of_condensed_water_in_soil
+  long_name = volumetric fraction of soil moisture
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[slc]
+  standard_name = volume_fraction_of_unfrozen_water_in_soil
+  long_name = volume fraction of unfrozen soil moisture
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[stc]
+  standard_name = soil_temperature
+  long_name = soil temperature
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil)
+  type = real
+  kind = kind_phys
+  intent = in
+[smois]
+  standard_name = volume_fraction_of_soil_moisture_for_land_surface_model
+  long_name = volumetric fraction of soil moisture for lsm
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = inout
+[sh2o]
+  standard_name = volume_fraction_of_unfrozen_soil_moisture_for_land_surface_model
+  long_name = volume fraction of unfrozen soil moisture for lsm
+  units = frac
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = inout
+[tslb]
+  standard_name = soil_temperature_for_land_surface_model
+  long_name = soil temperature for land surface model
+  units = K
+  dimensions = (horizontal_dimension,vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = inout
 [do_mynnsfclay]
   standard_name = flag_for_mellor_yamada_nakanishi_niino_surface_layer_scheme
   long_name = flag to activate MYNN surface layer
@@ -109,8 +208,8 @@
   type = integer
   intent = in
 [km]
-  standard_name = vertical_dimension_of_soil
-  long_name = soil vertical layer dimension
+  standard_name = vertical_dimension_of_soil_internal_to_land_surface_scheme
+  long_name = number of soil layers internal to land surface model
   units = count
   dimensions = ()
   type = integer
@@ -368,6 +467,22 @@
   long_name = gravitational acceleration
   units = m s-2
   dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+[zs]
+  standard_name = depth_of_soil_layers
+  long_name = depth of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
+  type = real
+  kind = kind_phys
+  intent = in
+[dzs]
+  standard_name = thickness_of_soil_layers_for_land_surface_model
+  long_name = thickness of soil levels for land surface model
+  units = m
+  dimensions = (vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = in
@@ -694,27 +809,27 @@
   type = real
   kind = kind_phys
   intent = inout
-[smc]
-  standard_name = volume_fraction_of_condensed_water_in_soil
-  long_name = total soil moisture
+[smois]
+  standard_name = volume_fraction_of_soil_moisture_for_land_surface_model
+  long_name = volumetric fraction of soil moisture for lsm
   units = frac
-  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil)
+  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = inout
-[stc]
-  standard_name = soil_temperature
-  long_name = soil temperature
+[tslb]
+  standard_name = soil_temperature_for_land_surface_model
+  long_name = soil temperature for land surface model
   units = K
-  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil)
+  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = inout
-[slc]
-  standard_name = volume_fraction_of_unfrozen_water_in_soil
-  long_name = liquid soil moisture
+[sh2o]
+  standard_name = volume_fraction_of_unfrozen_soil_moisture_for_land_surface_model
+  long_name = volume fraction of unfrozen soil moisture for lsm
   units = frac
-  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil)
+  dimensions = (horizontal_loop_extent,vertical_dimension_of_soil_internal_to_land_surface_scheme)
   type = real
   kind = kind_phys
   intent = inout
