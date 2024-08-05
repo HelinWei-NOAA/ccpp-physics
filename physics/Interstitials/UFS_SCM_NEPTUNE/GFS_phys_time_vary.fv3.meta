@@ -885,6 +885,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = True
 [smois]
   standard_name = volume_fraction_of_soil_moisture_for_land_surface_model
   long_name = volumetric fraction of soil moisture for lsm
@@ -893,6 +894,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = True
 [tslb]
   standard_name = soil_temperature_for_land_surface_model
   long_name = soil temperature for land surface model
@@ -901,6 +903,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = True
 [tsfcl]
   standard_name = surface_skin_temperature_over_land
   long_name = surface skin temperature over land
@@ -1674,6 +1677,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = True
 [sh2o]
   standard_name = volume_fraction_of_unfrozen_soil_moisture_for_land_surface_model
   long_name = volume fraction of unfrozen soil moisture for lsm
@@ -1682,6 +1686,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = True
 [tslb]
   standard_name = soil_temperature_for_land_surface_model
   long_name = soil temperature for land surface model
@@ -1690,6 +1695,7 @@
   type = real
   kind = kind_phys
   intent = inout
+  optional = True
 [tiice]
   standard_name = temperature_in_ice_layer
   long_name = sea ice internal temperature

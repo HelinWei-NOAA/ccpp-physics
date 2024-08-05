@@ -61,9 +61,9 @@
         real (kind=kind_phys), dimension(:,:), intent(in) :: slc
         real (kind=kind_phys), dimension(:,:), intent(in) :: stc
 
-        real (kind=kind_phys), dimension(:,:), intent(inout) :: smois
-        real (kind=kind_phys), dimension(:,:), intent(inout) :: sh2o
-        real (kind=kind_phys), dimension(:,:), intent(inout) :: tslb
+        real (kind=kind_phys), dimension(:,:), intent(inout), optional :: smois
+        real (kind=kind_phys), dimension(:,:), intent(inout), optional :: sh2o
+        real (kind=kind_phys), dimension(:,:), intent(inout), optional :: tslb
 
         logical,              intent(in) :: do_mynnsfclay
         logical,              intent(in) :: do_mynnedmf
@@ -383,9 +383,9 @@
   real(kind=kind_phys), dimension(:)     , intent(inout) :: tskin      ! ground surface skin temperature [K]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: tprcp      ! total precipitation [m]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: srflag     ! snow/rain flag for precipitation
-  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: smois      ! total soil moisture content [m3/m3]
-  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: tslb       ! soil temp [K]
-  real(kind=kind_phys), dimension(:,:)   , intent(inout) :: sh2o       ! liquid soil moisture [m3/m3]
+  real(kind=kind_phys), dimension(:,:)   , intent(inout), optional :: smois      ! total soil moisture content [m3/m3]
+  real(kind=kind_phys), dimension(:,:)   , intent(inout), optional :: tslb       ! soil temp [K]
+  real(kind=kind_phys), dimension(:,:)   , intent(inout), optional :: sh2o       ! liquid soil moisture [m3/m3]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: canopy     ! canopy moisture content [mm]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: trans      ! total plant transpiration [m/s]
   real(kind=kind_phys), dimension(:)     , intent(inout) :: tsurf      ! surface skin temperature [K]
