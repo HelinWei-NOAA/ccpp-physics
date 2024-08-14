@@ -37,7 +37,7 @@
                                 zs,soiltyp,vegtype,                 &
                                 smc,slc,stc,                        &
                                 smois,tslb,sh2o,                    & !out
-                                do_mynnsfclay,                      &
+                                do_mynnsfclay,do_mynnedmf,          &
                                 errmsg, errflg)
 
         use machine,          only: kind_phys
@@ -68,6 +68,7 @@
 
 
         logical,              intent(in) :: do_mynnsfclay
+        logical,              intent(in) :: do_mynnedmf
 
 
         character(len=*),     intent(out) :: errmsg
@@ -137,6 +138,12 @@
         if (isot /= 1) then
           errmsg = 'The NOAHMP LSM expects that the isot physics '// &
                    'namelist parameter is 1. Exiting...'
+          errflg = 1
+          return
+        end if
+        if ( do_mynnsfclay .and. .not. do_mynnedmf) then
+          errmsg = 'Problem : do_mynnsfclay = .true.' // &
+                   'but mynnpbl is .false.. Exiting ...'
           errflg = 1
           return
         end if
