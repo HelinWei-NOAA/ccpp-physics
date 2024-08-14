@@ -1144,9 +1144,6 @@
       chxy      (i)   = ch_noahmp
       zorl      (i)   = z0_total * 100.0  ! convert to cm
       ztmax     (i)   = z0h_total 
-
-      smois     (i,:) = soil_moisture_vol
-      sh2o      (i,:) = soil_liquid_vol
       
       !LAI-scale canopy resistance based on weighted sunlit shaded fraction
       if(rs_sunlit .le. 0.0 .or. rs_shaded .le. 0.0 .or. &
@@ -1158,9 +1155,8 @@
         rca(i) = max((1.0/rca(i)),parameters%rsmin) !resistance
       end if
       
-      smc       (i,:) = soil_moisture_vol
-      slc       (i,:) = soil_liquid_vol
->>>>>>> remotes/upstream/ufs/dev:physics/SFC_Models/Land/Noahmp/noahmpdrv.F90
+      smois     (i,:) = soil_moisture_vol
+      sh2o      (i,:) = soil_liquid_vol
       snowxy    (i)   = float(snow_levels)
       weasd     (i)   = snow_water_equiv
       snicexy   (i,:) = snow_level_ice
